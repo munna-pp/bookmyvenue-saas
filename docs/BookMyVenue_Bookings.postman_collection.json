@@ -1,0 +1,307 @@
+{
+  "info": {
+    "_postman_id": "c47f711d-6119-4a49-9830-a8d6b8ee5a51",
+    "name": "BookMyVenue - Booking Engine (Phase 4)",
+    "description": "Postman collection for testing the Booking Engine features in BookMyVenue.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Customer Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@bookmyvenue.com\",\n  \"password\": \"customerpassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Owner Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@bookmyvenue.com\",\n  \"password\": \"ownerpassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bookmyvenue.com\",\n  \"password\": \"adminpassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings Engine",
+      "item": [
+        {
+          "name": "Create Booking (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venueId\": \"6a3fa0e90dc0b359f82ee59d\",\n  \"eventType\": \"wedding\",\n  \"eventDate\": \"2026-07-20\",\n  \"startTime\": \"12:00\",\n  \"endTime\": \"17:00\",\n  \"guestCount\": 150,\n  \"specialRequests\": \"Need red carpets at ballroom entryway.\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings (Customer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/api/v1/bookings/my?page=1&limit=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "bookings", "my"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Owner Bookings Requests (Owner)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/api/v1/owner/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "owner", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Approve Booking request (Owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/api/v1/bookings/:id/approve",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "bookings", ":id", "approve"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "bookingId"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Booking request (Owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/api/v1/bookings/:id/reject",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "bookings", ":id", "reject"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "bookingId"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking request (Customer/Owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Change of plans and date scheduling conflict.\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/bookings/:id/cancel",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "bookings", ":id", "cancel"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "bookingId"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Venue Calendar Schedule (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/api/v1/venues/:id/calendar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "venues", ":id", "calendar"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "venueId"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Bookings Queue (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/api/v1/admin/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "admin", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Force State Override (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingStatus\": \"REFUNDED\",\n  \"paymentStatus\": \"REFUNDED\",\n  \"notes\": \"Forced refund override via admin panel dispute resolution.\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/api/v1/admin/bookings/:id/override",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["api", "v1", "admin", "bookings", ":id", "override"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "bookingId"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+# Exclude node_modules from build context
+node_modules
+**/node_modules
+
+# Exclude build artifacts
+.next
+**/.next
+dist
+**/dist
+build
+**/build
+out
+**/out
+
+# Exclude monitoring and logs
+logs
+**/logs
+*.log
+
+# Exclude git and environment files
+.git
+.gitignore
+.github
+.dockerignore
+.env
+.env.*
+!.env.example
+
+# Exclude IDE and system files
+.vscode
+.idea
+.DS_Store
+Thumbs.db

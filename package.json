@@ -1,0 +1,42 @@
+{
+  "name": "bookmyvenue-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SaaS Platform for Venue Booking",
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "dev:owner": "npm run dev --workspace=apps/owner",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev": "concurrently -n \"web,admin,owner,backend\" -c \"bgBlue,bgGreen,bgMagenta,bgYellow\" \"npm run dev:web\" \"npm run dev:admin\" \"npm run dev:owner\" \"npm run dev:backend\"",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:admin": "npm run build --workspace=apps/admin",
+    "build:owner": "npm run build --workspace=apps/owner",
+    "build:backend": "npm run build --workspace=backend",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\"",
+    "prepare": "husky install"
+  },
+  "workspaces": [
+    "apps/*",
+    "backend",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
+  }
+}
