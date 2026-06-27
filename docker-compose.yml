@@ -1,0 +1,214 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: bmv-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - bmv-network
+
+  # Redis Cache
+  redis:
+    image: redis:alpine
+    container_name: bmv-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bmv-network
+
+  # Express Backend Monolith
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+      target: runner
+    container_name: bmv-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-jwt-secret-key-should-be-long-and-secure
+      - JWT_REFRESH_SECRET=dev-jwt-refresh-secret-key-should-be-long-and-secure
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/backend/node_modules
+      - /app/packages/shared-types/node_modules
+    entrypoint: ["npm", "run", "dev", "--workspace=backend"]
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - bmv-network
+
+  # Client-Facing Web App (Next.js 15)
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+      target: runner
+    container_name: bmv-web-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/shared-types/node_modules
+    entrypoint: ["npm", "run", "dev", "--workspace=apps/web"]
+    depends_on:
+      - backend
+    networks:
+      - bmv-network
+
+  # Admin Dashboard App (Next.js 15)
+  admin:
+    build:
+      context: .
+      dockerfile: ./apps/admin/Dockerfile
+      target: runner
+    container_name: bmv-admin-app
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/admin/node_modules
+      - /app/packages/shared-types/node_modules
+    entrypoint: ["npm", "run", "dev", "--workspace=apps/admin"]
+    depends_on:
+      - backend
+    networks:
+      - bmv-network
+
+  # Owner Dashboard App (Next.js 15)
+  owner:
+    build:
+      context: .
+      dockerfile: ./apps/owner/Dockerfile
+      target: runner
+    container_name: bmv-owner-app
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/owner/node_modules
+      - /app/packages/shared-types/node_modules
+    entrypoint: ["npm", "run", "dev", "--workspace=apps/owner"]
+    depends_on:
+      - backend
+    networks:
+      - bmv-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bmv-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - admin
+      - owner
+      - backend
+    networks:
+      - bmv-network
+
+  # Prometheus (Metrics Collector)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bmv-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - bmv-network
+
+  # Loki (Log Engine)
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: bmv-loki
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infrastructure/monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - bmv-network
+
+  # Promtail (Log Shipper)
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: bmv-promtail
+    restart: always
+    volumes:
+      - ./infrastructure/monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      # For shipping container logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - bmv-network
+
+  # Grafana (Metrics & Logs Viewer)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bmv-grafana
+    restart: always
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./infrastructure/monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - bmv-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  grafana_data:
+
+networks:
+  bmv-network:
+    driver: bridge
