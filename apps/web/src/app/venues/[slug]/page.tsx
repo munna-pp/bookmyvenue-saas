@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { MapPin, Users, Info, Calendar, ShieldCheck, CheckCircle2, ChevronLeft, ChevronRight, IndianRupee, Loader2, AlertCircle, Clock, Gift } from 'lucide-react';
 import { getApiUrl } from '../../../utils/api';
 import { Venue } from '@bookmyvenue/shared-types';
+
+const NotificationBell = dynamic(() => import('../../../components/NotificationBell'), { ssr: false });
 
 export default function CustomerVenueDetails() {
   const params = useParams();
@@ -184,9 +187,10 @@ export default function CustomerVenueDetails() {
       {/* Top Header */}
       <header className="border-b border-border-custom bg-surface py-5 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <a href="/venues" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-6 items-center">
           <a href="/bookings" className="text-xs font-bold text-secondary-text hover:text-primary transition">My Bookings</a>
           <a href="/venues" className="text-xs font-bold text-secondary-text hover:text-primary transition">← Back to Browse</a>
+          <NotificationBell />
         </div>
       </header>
 

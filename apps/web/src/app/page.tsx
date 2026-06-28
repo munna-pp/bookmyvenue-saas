@@ -1,4 +1,9 @@
+'use client';
+
 import React from 'react';
+import dynamic from 'next/dynamic';
+
+const NotificationBell = dynamic(() => import('../components/NotificationBell'), { ssr: false });
 
 export default function Home() {
   return (
@@ -7,11 +12,24 @@ export default function Home() {
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-primary tracking-tight">BookMyVenue</span>
-          <span className="bg-premium/10 text-premium text-xs px-2.5 py-0.5 rounded-full font-medium">SaaS</span>
+          <span className="bg-premium/10 text-premium text-xs px-2.5 py-0.5 rounded-full font-medium">
+            SaaS
+          </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/owner" className="text-secondary-text hover:text-primary transition font-medium text-sm">Switch to Hosting</a>
-          <a href="/admin" className="text-secondary-text hover:text-primary transition font-medium text-sm">Admin Dashboard</a>
+          <a
+            href="/owner"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
+            Switch to Hosting
+          </a>
+          <a
+            href="/admin"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
+            Admin Dashboard
+          </a>
+          <NotificationBell />
           <button className="bg-primary text-surface px-4 py-2 rounded-full hover:bg-primary/95 transition font-medium text-sm shadow-sm cursor-pointer">
             Sign In
           </button>
@@ -24,7 +42,8 @@ export default function Home() {
           Book Premium Venues for Your <span className="text-primary">Perfect Event</span>
         </h1>
         <p className="text-lg md:text-xl text-body-text max-w-2xl">
-          Discover and book wedding halls, convention centers, resorts, birthday spaces, and meeting rooms. Seamlessly manage bookings and online payments.
+          Discover and book wedding halls, convention centers, resorts, birthday spaces, and meeting
+          rooms. Seamlessly manage bookings and online payments.
         </p>
 
         {/* Search Bar Widget Placeholder */}
@@ -34,7 +53,9 @@ export default function Home() {
             <span className="text-sm text-body-text">Search destinations</span>
           </div>
           <div className="flex-1 px-6 text-left border-r border-border-custom/50 w-full">
-            <span className="block text-xs font-bold text-secondary-text uppercase">Venue Type</span>
+            <span className="block text-xs font-bold text-secondary-text uppercase">
+              Venue Type
+            </span>
             <span className="text-sm text-body-text">Select venue type</span>
           </div>
           <div className="flex-1 px-6 text-left w-full">
@@ -59,9 +80,14 @@ export default function Home() {
             { label: 'Farm Houses', icon: '🏡' },
             { label: 'Event Spaces', icon: '🎭' },
           ].map((type, i) => (
-            <div key={i} className="bg-card-bg border border-border-custom/40 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary/60 transition cursor-pointer shadow-xs">
+            <div
+              key={i}
+              className="bg-card-bg border border-border-custom/40 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary/60 transition cursor-pointer shadow-xs"
+            >
               <span className="text-2xl">{type.icon}</span>
-              <span className="text-xs font-bold text-secondary-text text-center">{type.label}</span>
+              <span className="text-xs font-bold text-secondary-text text-center">
+                {type.label}
+              </span>
             </div>
           ))}
         </div>
@@ -71,9 +97,15 @@ export default function Home() {
       <footer className="border-t border-border-custom bg-surface py-6 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-text">
         <p>© 2026 BookMyVenue Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:underline">Privacy Policy</a>
-          <a href="#" className="hover:underline">Terms of Service</a>
-          <a href="#" className="hover:underline">Sitemap</a>
+          <a href="#" className="hover:underline">
+            Privacy Policy
+          </a>
+          <a href="#" className="hover:underline">
+            Terms of Service
+          </a>
+          <a href="#" className="hover:underline">
+            Sitemap
+          </a>
         </div>
       </footer>
     </main>

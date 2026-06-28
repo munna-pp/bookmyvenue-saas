@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, SlidersHorizontal, MapPin, Users, IndianRupee, Loader2 } from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Venue } from '../../../../../packages/shared-types/src';
+
+const NotificationBell = dynamic(() => import('../../components/NotificationBell'), { ssr: false });
 
 export default function CustomerVenuesBrowse() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -104,8 +107,10 @@ export default function CustomerVenuesBrowse() {
       {/* Top Header */}
       <header className="border-b border-border-custom bg-surface py-5 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <a href="/" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-6">
           <a href="/owner" className="text-sm font-bold text-secondary-text hover:text-primary transition">List Your Venue</a>
+          <a href="/bookings" className="text-sm font-bold text-secondary-text hover:text-primary transition">My Bookings</a>
+          <NotificationBell />
           <a href="/login" className="text-sm font-bold text-primary hover:underline">Sign In</a>
         </div>
       </header>

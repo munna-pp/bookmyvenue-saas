@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Calendar, Clock, Users, Loader2, AlertCircle, Trash2, ShieldCheck, HelpCircle, Check, Info, FileText } from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Booking } from '@bookmyvenue/shared-types';
+
+const NotificationBell = dynamic(() => import('../../components/NotificationBell'), { ssr: false });
 
 export default function CustomerBookingsHistory() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -111,6 +114,7 @@ export default function CustomerBookingsHistory() {
         <nav className="flex items-center gap-6">
           <a href="/venues" className="text-secondary-text hover:text-primary transition font-semibold text-xs">Browse Venues</a>
           <a href="/bookings" className="text-primary transition font-bold text-xs">My Bookings</a>
+          <NotificationBell />
         </nav>
       </header>
 
