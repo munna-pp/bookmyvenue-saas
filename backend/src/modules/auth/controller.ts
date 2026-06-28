@@ -42,6 +42,10 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       isVerified: false,
       verificationToken,
     });
+    
+    // Emit USER_REGISTERED event
+    const { authEvents } = await import('../../utils/events.js');
+    authEvents.emit('USER_REGISTERED', newUser);
 
     // Logging verification token to console for local testing/mocking verification
     logger.info(`✉️ Mock email sent to [${email}] with verification token: ${verificationToken}`);
@@ -289,6 +293,14 @@ export const forgotPassword = async (
     user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
     await user.save();
+
+    // Emit PASSWORD_RESET_REQUESTED event
+    const { authEvents } = await import('../../utils/events.js');
+    authEvents.emit('PASSWORD_RESET_REQUESTED', {
+      email: user.email,
+      name: user.name,
+      passwordResetToken: resetToken,
+    });
 
     // 3. Mock Email dispatch - Log to Winston console
     logger.info(`✉️ Mock email sent to [${email}] with password reset token: ${resetToken}`);

@@ -21,10 +21,17 @@ const startServer = async () => {
     // 2. Initialize Redis client
     getRedisClient();
 
-    // 3. Listen on port
     server = app.listen(config.PORT, () => {
       logger.info(`✨ Service listening on port ${config.PORT} in ${config.NODE_ENV} mode`);
     });
+
+    // Initialize Socket.IO Server
+    const { initializeSocket } = await import('./modules/notifications/services/socketService.js');
+    initializeSocket(server);
+
+    // Initialize event listeners for Notifications module
+    const { initializeNotificationListeners } = await import('./modules/notifications/services/notificationService.js');
+    initializeNotificationListeners();
 
   } catch (error) {
     logger.error('❌ Failed to start the server:', error);
@@ -56,8 +63,7 @@ process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Log and let the app continue, or exit if database connection was lost
+  logger.error(`Unhandled Rejection: ${reason instanceof Error ? reason.stack : reason}`);
 });
 
 process.on('uncaughtException', (error) => {

@@ -411,7 +411,7 @@ export const approveVenue = async (
       { _id: id, isDeleted: false },
       { approvalStatus: 'APPROVED' },
       { new: true }
-    );
+    ).populate('ownerId');
 
     if (!venue) {
       next(new AppError('Venue not found', 404));
@@ -420,10 +420,19 @@ export const approveVenue = async (
 
     logger.info(`✅ Venue APPROVED by Admin: ${venue.title} (ID: ${id})`);
 
+    // Emit event
+    const { venueEvents } = await import('../../utils/events.js');
+    venueEvents.emit('VENUE_APPROVED', { venue, owner: (venue as any).ownerId });
+
     res.status(200).json({
       status: 'success',
       message: 'Venue approved successfully',
-      data: { venue },
+      data: {
+        venue: {
+          ...venue.toObject(),
+          ownerId: (venue.ownerId as any)._id || venue.ownerId
+        }
+      },
     });
   } catch (error) {
     next(error);
@@ -446,7 +455,7 @@ export const rejectVenue = async (
       { _id: id, isDeleted: false },
       { approvalStatus: 'REJECTED' },
       { new: true }
-    );
+    ).populate('ownerId');
 
     if (!venue) {
       next(new AppError('Venue not found', 404));
@@ -455,10 +464,19 @@ export const rejectVenue = async (
 
     logger.info(`❌ Venue REJECTED by Admin: ${venue.title} (ID: ${id})`);
 
+    // Emit event
+    const { venueEvents } = await import('../../utils/events.js');
+    venueEvents.emit('VENUE_REJECTED', { venue, owner: (venue as any).ownerId });
+
     res.status(200).json({
       status: 'success',
       message: 'Venue rejected successfully',
-      data: { venue },
+      data: {
+        venue: {
+          ...venue.toObject(),
+          ownerId: (venue.ownerId as any)._id || venue.ownerId
+        }
+      },
     });
   } catch (error) {
     next(error);

@@ -16,6 +16,12 @@ const envSchema = z.object({
   RAZORPAY_KEY_ID: z.string().default('rzp_test_placeholder_key_id'),
   RAZORPAY_KEY_SECRET: z.string().default('rzp_test_placeholder_key_secret'),
   RAZORPAY_WEBHOOK_SECRET: z.string().default('rzp_test_placeholder_webhook_secret'),
+  // SMTP Configuration
+  SMTP_HOST: z.string().default('smtp.mailtrap.io'),
+  SMTP_PORT: z.coerce.number().default(2525),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('"BookMyVenue" <noreply@bookmyvenue.com>'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
