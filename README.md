@@ -133,3 +133,14 @@ To run E2E integration test verification for payments, coupons, invoices, and le
 # Run verification script against the active local Express container
 node backend/src/config/verify_payments.js
 ```
+
+---
+
+## E2E Notifications Integration Tests
+
+To run E2E integration test verification for real-time notifications, event-driven emails (Nodemailer SMTP), and CRUD APIs:
+
+```bash
+# Run verification script against the active local Express container
+node backend/src/config/verify_notifications.js
+```
