@@ -92,3 +92,29 @@ export const restrictTo = (...roles: Array<'customer' | 'owner' | 'admin'>) => {
     next();
   };
 };
+
+/**
+ * Middleware to optionally load current user from Authorization token if provided.
+ */
+export const optionalProtect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    let token: string | undefined;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      next();
+      return;
+    }
+
+    const decoded = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
+    const currentUser = await User.findById(decoded.userId);
+    if (currentUser && currentUser.status !== 'SUSPENDED' && !currentUser.isLocked()) {
+      req.user = currentUser;
+    }
+    next();
+  } catch (error) {
+    next();
+  }
+};

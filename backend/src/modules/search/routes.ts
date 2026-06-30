@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { optionalProtect } from '../../middleware/auth.js';
+import * as controller from './controller.js';
 
 const router = Router();
 
@@ -9,5 +11,7 @@ router.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+router.get('/venues', optionalProtect, controller.searchVenues);
 
 export default router;
