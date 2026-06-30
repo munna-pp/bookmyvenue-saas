@@ -14,5 +14,6 @@ router.get('/health', (req, res) => {
 
 router.get('/venues', optionalProtect, controller.searchVenues);
 router.get('/nearby', optionalProtect, controller.getNearbyVenues);
+router.get('/suggestions', controller.getSuggestions);
 
 export default router;

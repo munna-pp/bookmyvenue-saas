@@ -229,3 +229,70 @@ export const executeNearbySearch = async (params: {
 
   return { venues, total };
 };
+
+/**
+ * Get instant autocomplete suggestions matching partial query on venue titles, cities, or types.
+ */
+export const executeSuggestionsAutocomplete = async (q: string) => {
+  if (!q || q.trim() === '') {
+    return [];
+  }
+
+  const queryTerm = q.trim();
+  const qReg = new RegExp(queryTerm, 'i');
+
+  const venueTypesList = [
+    'wedding_hall',
+    'convention_center',
+    'banquet_hall',
+    'birthday_venue',
+    'resort',
+    'meeting_room',
+    'sports_ground',
+    'farm_house',
+    'event_space',
+  ];
+
+  // 1. Fetch matching venues (limit 5)
+  const venues = await Venue.find({
+    title: qReg,
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+  })
+    .limit(5)
+    .select('title')
+    .lean();
+
+  // 2. Fetch matching cities using distinct with filter (limit 5)
+  // Mongoose distinct doesn't support limit natively, slice after fetching
+  const matchedCities = await Venue.distinct('city', {
+    city: qReg,
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+  });
+  const cities = matchedCities.slice(0, 5);
+
+  // 3. Match venue types enum values list (limit 5)
+  const matchedTypes = venueTypesList
+    .filter((t) => t.replace(/_/g, ' ').toLowerCase().includes(queryTerm.toLowerCase()))
+    .slice(0, 5);
+
+  const suggestions: Array<{ text: string; type: 'venue' | 'city' | 'type' }> = [];
+
+  // Populate formatted suggestions
+  venues.forEach((v) => {
+    suggestions.push({ text: v.title, type: 'venue' });
+  });
+
+  cities.forEach((c) => {
+    suggestions.push({ text: c, type: 'city' });
+  });
+
+  matchedTypes.forEach((t) => {
+    suggestions.push({ text: t.replace(/_/g, ' '), type: 'type' });
+  });
+
+  return suggestions;
+};

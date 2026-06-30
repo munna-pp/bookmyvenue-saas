@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { executeSearch, executeNearbySearch } from './services/searchService.js';
+import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete } from './services/searchService.js';
 import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
 import { AppError } from '../../middleware/errorHandler.js';
@@ -58,6 +58,31 @@ export const getNearbyVenues = async (
     });
   } catch (error) {
     logger.error('❌ Error executing geo search controller:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/suggestions
+ * Instant autocomplete suggestions matching partial query on titles, cities, or types
+ */
+export const getSuggestions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { q = '' } = req.query;
+    const suggestions = await executeSuggestionsAutocomplete(q as string);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        suggestions,
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error executing suggestions autocomplete controller:', error);
     next(error);
   }
 };
