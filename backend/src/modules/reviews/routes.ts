@@ -19,6 +19,7 @@ router.get('/reviews/health', (req, res) => {
 router.get('/venues/:id/reviews', controller.getVenueReviews);
 
 // Protected routes (require user login)
+router.get('/reviews', protect, restrictTo('admin'), controller.getAllReviewsAdmin);
 router.get('/owner/reviews', protect, restrictTo('owner'), controller.getOwnerReviews);
 router.post('/reviews', protect, validate(createReviewSchema), controller.createReview);
 router.put('/reviews/:id', protect, validate(updateReviewSchema), controller.updateReview);
@@ -31,5 +32,10 @@ router.get('/wishlist', protect, controller.getWishlist);
 
 // Owner reply endpoint
 router.post('/reviews/:id/reply', protect, validate(ownerReplySchema), controller.submitOwnerReply);
+
+// Admin moderation endpoints
+router.patch('/reviews/:id/hide', protect, restrictTo('admin'), controller.hideReview);
+router.patch('/reviews/:id/restore', protect, restrictTo('admin'), controller.restoreReview);
+router.delete('/admin/reviews/:id', protect, restrictTo('admin'), controller.purgeReview);
 
 export default router;

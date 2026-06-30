@@ -502,6 +502,175 @@ export const submitOwnerReply = async (
 };
 
 /**
+ * PATCH /api/v1/reviews/:id/hide
+ * Hide a review (Admin only)
+ */
+export const hideReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    logger.info(`🛡️ Admin hiding review ${id}`);
+
+    const review = await Review.findByIdAndUpdate(
+      id,
+      { hidden: true },
+      { new: true }
+    );
+
+    if (!review) {
+      next(new AppError('Review not found', 404));
+      return;
+    }
+
+    // Recalculate ratings
+    await recalculateVenueRating(review.venueId);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Review hidden successfully',
+      data: { review },
+    });
+  } catch (error) {
+    logger.error('❌ Error hiding review:', error);
+    next(error);
+  }
+};
+
+/**
+ * PATCH /api/v1/reviews/:id/restore
+ * Restore a hidden review (Admin only)
+ */
+export const restoreReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    logger.info(`🛡️ Admin restoring review ${id}`);
+
+    const review = await Review.findByIdAndUpdate(
+      id,
+      { hidden: false },
+      { new: true }
+    );
+
+    if (!review) {
+      next(new AppError('Review not found', 404));
+      return;
+    }
+
+    // Recalculate ratings
+    await recalculateVenueRating(review.venueId);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Review restored successfully',
+      data: { review },
+    });
+  } catch (error) {
+    logger.error('❌ Error restoring review:', error);
+    next(error);
+  }
+};
+
+/**
+ * DELETE /api/v1/admin/reviews/:id
+ * Permanently delete/purge review (Admin only)
+ */
+export const purgeReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    logger.info(`🛡️ Admin purging/permanently deleting review ${id}`);
+
+    const review = await Review.findById(id);
+    if (!review) {
+      next(new AppError('Review not found', 404));
+      return;
+    }
+
+    const venueId = review.venueId;
+    await Review.findByIdAndDelete(id);
+
+    // Recalculate ratings
+    await recalculateVenueRating(venueId);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Review permanently purged from database successfully',
+    });
+  } catch (error) {
+    logger.error('❌ Error purging review:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/reviews
+ * Fetch all reviews in the system (Admin only)
+ */
+export const getAllReviewsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { rating, search, page = 1, limit = 10 } = req.query;
+
+    const query: any = {
+      isDeleted: false,
+    };
+
+    if (rating) {
+      query.rating = parseInt(rating as string, 10);
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search as string, $options: 'i' } },
+        { review: { $regex: search as string, $options: 'i' } },
+      ];
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.max(1, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    logger.info(`🛡️ Admin fetching all reviews (page: ${pageNum}, limit: ${limitNum}, rating: ${rating})`);
+
+    const [reviews, total] = await Promise.all([
+      Review.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate('customerId', 'name')
+        .lean(),
+      Review.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        reviews,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error getting all reviews for admin:', error);
+    next(error);
+  }
+};
+
+/**
  * GET /api/v1/owner/reviews
  * Fetch all reviews for venues owned by the current host (Owner only)
  */
