@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { protect } from '../../middleware/auth.js';
+import { protect, restrictTo } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
-import { createReviewSchema, updateReviewSchema } from './dtos.js';
+import { createReviewSchema, updateReviewSchema, ownerReplySchema } from './dtos.js';
 import * as controller from './controller.js';
 
 const router = Router();
@@ -19,6 +19,7 @@ router.get('/reviews/health', (req, res) => {
 router.get('/venues/:id/reviews', controller.getVenueReviews);
 
 // Protected routes (require user login)
+router.get('/owner/reviews', protect, restrictTo('owner'), controller.getOwnerReviews);
 router.post('/reviews', protect, validate(createReviewSchema), controller.createReview);
 router.put('/reviews/:id', protect, validate(updateReviewSchema), controller.updateReview);
 router.delete('/reviews/:id', protect, controller.deleteReview);
@@ -27,5 +28,8 @@ router.delete('/reviews/:id', protect, controller.deleteReview);
 router.post('/wishlist/:venueId', protect, controller.addToWishlist);
 router.delete('/wishlist/:venueId', protect, controller.removeFromWishlist);
 router.get('/wishlist', protect, controller.getWishlist);
+
+// Owner reply endpoint
+router.post('/reviews/:id/reply', protect, validate(ownerReplySchema), controller.submitOwnerReply);
 
 export default router;

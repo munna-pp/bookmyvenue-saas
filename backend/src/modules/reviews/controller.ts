@@ -443,3 +443,141 @@ export const getWishlist = async (
     next(error);
   }
 };
+
+/**
+ * POST /api/v1/reviews/:id/reply
+ * Owner reply to a review
+ */
+export const submitOwnerReply = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const ownerId = req.user?._id;
+    const { id } = req.params;
+    const { reply } = req.body;
+
+    if (!ownerId) {
+      next(new AppError('Unauthorized', 401));
+      return;
+    }
+
+    const review = await Review.findOne({ _id: id, isDeleted: false });
+    if (!review) {
+      next(new AppError('Review not found', 404));
+      return;
+    }
+
+    // Verify user owns the venue
+    const venue = await Venue.findById(review.venueId);
+    if (!venue) {
+      next(new AppError('Venue associated with this review not found', 404));
+      return;
+    }
+
+    if (venue.ownerId.toString() !== ownerId.toString()) {
+      next(new AppError('You do not have permission to reply to this review', 403));
+      return;
+    }
+
+    logger.info(`💬 Owner ${ownerId} replying to review ${id}`);
+    review.ownerReply = {
+      reply: sanitizeText(reply),
+      repliedAt: new Date(),
+    };
+
+    await review.save();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        review,
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error submitting owner reply:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/owner/reviews
+ * Fetch all reviews for venues owned by the current host (Owner only)
+ */
+export const getOwnerReviews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const ownerId = req.user?._id;
+    const { page = 1, limit = 10 } = req.query;
+
+    if (!ownerId) {
+      next(new AppError('Unauthorized', 401));
+      return;
+    }
+
+    // 1. Fetch all venues owned by this host
+    const venues = await Venue.find({ ownerId, isDeleted: false });
+    const venueIds = venues.map((v) => v._id);
+
+    if (venueIds.length === 0) {
+      res.status(200).json({
+        status: 'success',
+        data: {
+          reviews: [],
+          total: 0,
+          page: 1,
+          pages: 1,
+        },
+      });
+      return;
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.max(1, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    logger.info(`📋 Owner ${ownerId} fetching reviews for their venues (page: ${pageNum}, limit: ${limitNum})`);
+
+    const [reviews, total] = await Promise.all([
+      Review.find({
+        venueId: { $in: venueIds },
+        isDeleted: false,
+      })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate('customerId', 'name')
+        .lean(),
+      Review.countDocuments({
+        venueId: { $in: venueIds },
+        isDeleted: false,
+      }),
+    ]);
+
+    // Attach venue titles to the reviews manually to avoid cross-connection populates
+    const reviewsWithVenues = reviews.map((r) => {
+      const venueObj = venues.find((v) => v._id.toString() === r.venueId.toString());
+      return {
+        ...r,
+        venueTitle: venueObj ? venueObj.title : 'N/A',
+      };
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        reviews: reviewsWithVenues,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error getting owner reviews:', error);
+    next(error);
+  }
+};
