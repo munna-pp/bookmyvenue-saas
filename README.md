@@ -144,3 +144,14 @@ To run E2E integration test verification for real-time notifications, event-driv
 # Run verification script against the active local Express container
 node backend/src/config/verify_notifications.js
 ```
+
+---
+
+## E2E Reviews & Wishlist Integration Tests
+
+To run E2E integration test verification for venue reviews, automated rating recalculations, owner replies, wishlist management, and admin review moderation:
+
+```bash
+# Run verification script against the active local Express container
+node backend/src/config/verify_reviews.js
+```

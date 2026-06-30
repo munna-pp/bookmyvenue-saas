@@ -2,6 +2,19 @@
 
 All notable changes to the BookMyVenue booking monolith will be documented in this file.
 
+## [0.6.0] - 2026-06-29
+
+### Added
+
+- Complete Reviews & Ratings system including automated star rating recalculations.
+- Dedicated MongoDB Review and Wishlist collections with isolated connection pools.
+- Verified Purchase verification restricting review submissions to completed booking references.
+- Host replies workflow enabling owners to respond to reviews.
+- Admin review moderation dashboard supporting hiding, restoring, and permanently purging reviews.
+- Interactive customer stars feedback forms and image upload/links attachments.
+- Paginated customer Wishlist portal supporting multiple sorting choices (price, rating, date saved).
+- E2E reviews and wishlist integration test suite.
+
 ## [0.5.0] - 2026-06-28
 
 ### Added
