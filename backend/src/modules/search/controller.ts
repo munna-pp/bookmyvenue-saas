@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete, executeRecommendations } from './services/searchService.js';
+import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete, executeRecommendations, executeGetSearchAnalytics, executeGetTrending, executeGetFeatured } from './services/searchService.js';
 import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
 import { AppError } from '../../middleware/errorHandler.js';
@@ -111,6 +111,71 @@ export const getRecommendations = async (
     });
   } catch (error) {
     logger.error('❌ Error executing recommendations controller:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/analytics
+ * Compile search analytics statistics (Admin only)
+ */
+export const getSearchAnalytics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const stats = await executeGetSearchAnalytics();
+    res.status(200).json({
+      status: 'success',
+      data: stats,
+    });
+  } catch (error) {
+    logger.error('❌ Error getting search analytics:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/trending
+ * Get trending keywords and venues
+ */
+export const getTrending = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const trending = await executeGetTrending();
+    res.status(200).json({
+      status: 'success',
+      data: trending,
+    });
+  } catch (error) {
+    logger.error('❌ Error getting trending search keywords/venues:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/featured
+ * Get featured venues list
+ */
+export const getFeatured = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const featured = await executeGetFeatured();
+    res.status(200).json({
+      status: 'success',
+      data: {
+        venues: featured,
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error getting featured venues list:', error);
     next(error);
   }
 };

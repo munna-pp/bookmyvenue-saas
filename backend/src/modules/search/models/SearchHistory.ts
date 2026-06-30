@@ -5,6 +5,7 @@ export interface ISearchHistory extends Document {
   customerId?: Types.ObjectId;
   keyword?: string;
   filters: Record<string, any>;
+  resultsCount: number;
   searchedAt: Date;
 }
 
@@ -23,6 +24,11 @@ const searchHistorySchema = new Schema<ISearchHistory>(
     filters: {
       type: Schema.Types.Mixed,
       default: {},
+    },
+    resultsCount: {
+      type: Number,
+      default: 0,
+      required: true,
     },
     searchedAt: {
       type: Date,

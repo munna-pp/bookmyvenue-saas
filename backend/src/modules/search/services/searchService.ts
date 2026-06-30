@@ -144,15 +144,20 @@ export const executeSearch = async (
 
   // Log search action to analytics asynchronously
   if (params.q || params.city || params.venueType) {
-    logSearchQuery(customerId, params.q, {
-      city: params.city,
-      state: params.state,
-      country: params.country,
-      venueType: params.venueType,
-      minPrice: params.minPrice,
-      maxPrice: params.maxPrice,
-      capacity: params.capacity,
-    }).catch((err) => logger.error('❌ Failed to log search analytics:', err));
+    logSearchQuery(
+      customerId,
+      params.q,
+      {
+        city: params.city,
+        state: params.state,
+        country: params.country,
+        venueType: params.venueType,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        capacity: params.capacity,
+      },
+      total
+    ).catch((err) => logger.error('❌ Failed to log search analytics:', err));
   }
 
   return { venues, total };
@@ -164,7 +169,8 @@ export const executeSearch = async (
 export const logSearchQuery = async (
   customerId?: string,
   keyword?: string,
-  filters: Record<string, any> = {}
+  filters: Record<string, any> = {},
+  resultsCount: number = 0
 ) => {
   try {
     const custId = customerId ? new Types.ObjectId(customerId) : undefined;
@@ -172,6 +178,7 @@ export const logSearchQuery = async (
       customerId: custId,
       keyword: keyword || undefined,
       filters,
+      resultsCount,
       searchedAt: new Date(),
     });
   } catch (error) {
@@ -431,4 +438,94 @@ export const executeRecommendations = async (customerId?: string, limit: number 
     logger.error('❌ Error generating recommended list:', error);
     return getFallbackVenues();
   }
+};
+
+/**
+ * Compile search analytics statistics
+ */
+export const executeGetSearchAnalytics = async () => {
+  const [
+    totalSearches,
+    zeroResultCount,
+    popularKeywords,
+    popularCities,
+    popularVenueTypes
+  ] = await Promise.all([
+    // 1. Total searches
+    SearchHistory.countDocuments(),
+    // 2. Zero-result count
+    SearchHistory.countDocuments({ resultsCount: 0 }),
+    // 3. Top keywords (excluding null/undefined)
+    SearchHistory.aggregate([
+      { $match: { keyword: { $ne: null } } },
+      { $group: { _id: '$keyword', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]),
+    // 4. Top cities
+    SearchHistory.aggregate([
+      { $match: { 'filters.city': { $ne: null, $ne: '' } } },
+      { $group: { _id: '$filters.city', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]),
+    // 5. Top venue types
+    SearchHistory.aggregate([
+      { $match: { 'filters.venueType': { $ne: null } } },
+      { $group: { _id: '$filters.venueType', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ])
+  ]);
+
+  return {
+    totalSearches,
+    zeroResultCount,
+    popularKeywords: popularKeywords.map(item => ({ keyword: item._id, count: item.count })),
+    popularCities: popularCities.map(item => ({ city: item._id, count: item.count })),
+    popularVenueTypes: popularVenueTypes.map(item => ({ venueType: item._id, count: item.count }))
+  };
+};
+
+/**
+ * Get trending searches and trending venues
+ */
+export const executeGetTrending = async () => {
+  // Top keywords
+  const topKeywords = await SearchHistory.aggregate([
+    { $match: { keyword: { $ne: null } } },
+    { $group: { _id: '$keyword', count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 5 }
+  ]);
+
+  // Top venues
+  const trendingVenues = await Venue.find({
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+  })
+    .sort({ rating: -1, reviewCount: -1 })
+    .limit(6)
+    .lean();
+
+  return {
+    keywords: topKeywords.map(k => k._id),
+    venues: trendingVenues
+  };
+};
+
+/**
+ * Get featured venues (high rating)
+ */
+export const executeGetFeatured = async () => {
+  return Venue.find({
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+    rating: { $gte: 4.5 }
+  })
+    .sort({ reviewCount: -1 })
+    .limit(6)
+    .lean();
 };
