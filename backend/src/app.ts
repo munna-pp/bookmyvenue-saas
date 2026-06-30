@@ -70,7 +70,7 @@ app.use('/api/v1', venuesRouter);
 app.use('/api/v1', bookingsRouter);
 app.use('/api/v1', paymentsRouter);
 app.use('/api/v1/notifications', notificationsRouter);
-app.use('/api/v1/reviews', reviewsRouter);
+app.use('/api/v1', reviewsRouter);
 app.use('/api/v1/search', searchRouter);
 
 // Catch 404

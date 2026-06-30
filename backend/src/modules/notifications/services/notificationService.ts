@@ -6,6 +6,8 @@ import { bookingEvents } from '../../bookings/services/bookingService.js';
 import { paymentEvents } from '../../payments/services/paymentService.js';
 import { User } from '../../auth/models/User.js';
 import { Venue } from '../../venues/models/Venue.js';
+import { Booking } from '../../bookings/models/Booking.js';
+import { Invoice } from '../../payments/models/Invoice.js';
 import { logger } from '../../../utils/logger.js';
 
 interface CreateNotificationParams {
@@ -252,8 +254,7 @@ export const initializeNotificationListeners = (): void => {
     logger.info(`🔔 Event [PAYMENT_SUCCESS]: Dispatching alerts for transaction: ${payment.providerPaymentId}`);
     try {
       const customer = await User.findById(payment.customerId);
-      const BookingModel = payment.db.model('Booking');
-      const booking = await BookingModel.findById(payment.bookingId);
+      const booking = await Booking.findById(payment.bookingId);
 
       if (!customer || !booking) {
         logger.error(`❌ Event [PAYMENT_SUCCESS]: Missing Customer/Booking for payment: ${payment._id}`);
@@ -261,8 +262,7 @@ export const initializeNotificationListeners = (): void => {
       }
 
       // Fetch invoice context
-      const InvoiceModel = payment.db.model('Invoice');
-      const invoice = await InvoiceModel.findOne({ bookingId: booking._id });
+      const invoice = await Invoice.findOne({ bookingId: booking._id });
       const invoiceNumber = invoice ? invoice.invoiceNumber : 'N/A';
 
       // Notify Customer
@@ -290,8 +290,7 @@ export const initializeNotificationListeners = (): void => {
     logger.info(`🔔 Event [PAYMENT_REFUNDED]: Dispatching alerts for payment: ${payment.providerPaymentId}`);
     try {
       const customer = await User.findById(payment.customerId);
-      const BookingModel = payment.db.model('Booking');
-      const booking = await BookingModel.findById(payment.bookingId);
+      const booking = await Booking.findById(payment.bookingId);
 
       if (!customer || !booking) {
         logger.error(`❌ Event [PAYMENT_REFUNDED]: Missing Customer/Booking for payment: ${payment._id}`);

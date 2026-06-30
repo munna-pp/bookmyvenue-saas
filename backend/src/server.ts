@@ -62,7 +62,7 @@ const handleShutdown = async (signal: string) => {
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason, _promise) => {
   logger.error(`Unhandled Rejection: ${reason instanceof Error ? reason.stack : reason}`);
 });
 
