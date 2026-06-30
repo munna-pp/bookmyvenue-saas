@@ -177,3 +177,55 @@ export const logSearchQuery = async (
     logger.error('❌ Error logging search query to history:', error);
   }
 };
+
+/**
+ * Find venues nearby using geolocation coordinates and maximum radial distance in kilometers.
+ */
+export const executeNearbySearch = async (params: {
+  lat: number;
+  lng: number;
+  radius: number; // in km
+  page: number;
+  limit: number;
+}) => {
+  const skip = (params.page - 1) * params.limit;
+  const maxDistanceInMeters = params.radius * 1000;
+
+  const query: any = {
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+    location: {
+      $nearSphere: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [params.lng, params.lat], // [longitude, latitude]
+        },
+        $maxDistance: maxDistanceInMeters,
+      },
+    },
+  };
+
+  logger.info(`🌐 Geo Search nearby: lat=${params.lat}, lng=${params.lng}, radius=${params.radius}km`);
+
+  const [venues, total] = await Promise.all([
+    Venue.find(query)
+      .skip(skip)
+      .limit(params.limit)
+      .lean(),
+    // countDocuments fails on queries with $nearSphere geolocation query operators in Mongoose; use count or find.length/separate geometry count
+    // So to count documents safely for geospatial radius, we can use $geoWithin or execute find without limit/skip
+    Venue.countDocuments({
+      isDeleted: false,
+      approvalStatus: 'APPROVED',
+      publicationStatus: 'PUBLISHED',
+      location: {
+        $geoWithin: {
+          $centerSphere: [[params.lng, params.lat], params.radius / 6378.1], // radius in radians
+        },
+      },
+    }),
+  ]);
+
+  return { venues, total };
+};

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { executeSearch } from './services/searchService.js';
-import { searchQuerySchema } from './dtos.js';
+import { executeSearch, executeNearbySearch } from './services/searchService.js';
+import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
@@ -30,6 +30,34 @@ export const searchVenues = async (
     });
   } catch (error) {
     logger.error('❌ Error executing search controller:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/nearby
+ * Geospatial search matching venues within radius of lat/lng coordinates
+ */
+export const getNearbyVenues = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const validated = nearbyQuerySchema.parse(req.query);
+    const { venues, total } = await executeNearbySearch(validated);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        venues,
+        total,
+        page: validated.page,
+        pages: Math.ceil(total / validated.limit),
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error executing geo search controller:', error);
     next(error);
   }
 };

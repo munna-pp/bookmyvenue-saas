@@ -46,3 +46,26 @@ export const searchQuerySchema = z.object({
     z.number().int().min(1).default(10)
   ),
 });
+
+export const nearbyQuerySchema = z.object({
+  lat: z.preprocess(
+    (val) => (val ? parseFloat(val as string) : undefined),
+    z.number().min(-90).max(90)
+  ),
+  lng: z.preprocess(
+    (val) => (val ? parseFloat(val as string) : undefined),
+    z.number().min(-180).max(180)
+  ),
+  radius: z.preprocess(
+    (val) => (val ? parseInt(val as string, 10) : undefined),
+    z.number().int().min(1).default(10) // default 10km
+  ),
+  page: z.preprocess(
+    (val) => (val ? parseInt(val as string, 10) : undefined),
+    z.number().int().min(1).default(1)
+  ),
+  limit: z.preprocess(
+    (val) => (val ? parseInt(val as string, 10) : undefined),
+    z.number().int().min(1).default(10)
+  ),
+});

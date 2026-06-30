@@ -13,5 +13,6 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/venues', optionalProtect, controller.searchVenues);
+router.get('/nearby', optionalProtect, controller.getNearbyVenues);
 
 export default router;
