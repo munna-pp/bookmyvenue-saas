@@ -545,7 +545,7 @@ export default function CustomerVenueDetails() {
                 <div className="h-64 relative rounded-2xl overflow-hidden border border-border-custom bg-card-bg z-0">
                   <LeafletMap
                     markers={[{
-                      id: venue.id || venue._id,
+                      id: venue.id,
                       title: venue.title,
                       price: venue.pricing.pricePerDay,
                       lat: venue.location.coordinates[1],
