@@ -12,6 +12,8 @@
     "@bookmyvenue/shared-types": "*",
     "@hookform/resolvers": "^3.3.4",
     "@tanstack/react-query": "^5.28.0",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.363.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

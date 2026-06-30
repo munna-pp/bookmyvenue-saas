@@ -464,7 +464,7 @@ export const executeGetSearchAnalytics = async () => {
     ]),
     // 4. Top cities
     SearchHistory.aggregate([
-      { $match: { 'filters.city': { $ne: null, $ne: '' } } },
+      { $match: { 'filters.city': { $nin: [null, ''] } } },
       { $group: { _id: '$filters.city', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
