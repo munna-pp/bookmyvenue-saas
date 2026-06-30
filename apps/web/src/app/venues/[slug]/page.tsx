@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
-import { MapPin, Users, Info, Calendar, ShieldCheck, CheckCircle2, ChevronLeft, ChevronRight, IndianRupee, Loader2, AlertCircle, Clock, Gift } from 'lucide-react';
+import { MapPin, Users, Info, Calendar, ShieldCheck, CheckCircle2, ChevronLeft, ChevronRight, IndianRupee, Loader2, AlertCircle, Clock, Gift, Navigation } from 'lucide-react';
 import { getApiUrl } from '../../../utils/api';
 import { Venue } from '@bookmyvenue/shared-types';
 
 const NotificationBell = dynamic(() => import('../../../components/NotificationBell'), { ssr: false });
+const LeafletMap = dynamic(() => import('../../../components/LeafletMap'), { ssr: false });
 
 export default function CustomerVenueDetails() {
   const params = useParams();
@@ -19,6 +20,7 @@ export default function CustomerVenueDetails() {
   
   // Gallery slider state
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [nearbyVenues, setNearbyVenues] = useState<any[]>([]);
   
   // Real booking states
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -88,10 +90,26 @@ export default function CustomerVenueDetails() {
       fetchReviews(v.id, reviewPage, reviewSort);
       checkWishlist(v.id);
       fetchCompletedBookings(v.id);
+
+      if (v.location && v.location.coordinates) {
+        fetchNearbyVenues(v.location.coordinates[1], v.location.coordinates[0]);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong while retrieving venue details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNearbyVenues = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(getApiUrl(`/api/v1/search/nearby?lat=${lat}&lng=${lng}&radius=25&limit=4`));
+      const json = await res.json();
+      if (res.ok) {
+        setNearbyVenues((json.data.venues || []).filter((v: any) => (v.slug || v._id) !== slug).slice(0, 3));
+      }
+    } catch (err) {
+      console.error('Failed to load nearby venues:', err);
     }
   };
 
@@ -504,6 +522,44 @@ export default function CustomerVenueDetails() {
                 </div>
               ) : (
                 <span className="text-xs text-muted-text">No amenities specified for this listing.</span>
+              )}
+            </div>
+
+            {/* Map Location & Directions */}
+            <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 flex flex-col gap-4 shadow-xs">
+              <div className="flex justify-between items-center border-b border-border-custom/25 pb-3">
+                <h2 className="text-xl font-bold text-primary-text">Location & Map</h2>
+                {venue.location?.coordinates && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${venue.location.coordinates[1]},${venue.location.coordinates[0]}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-primary font-bold hover:underline"
+                  >
+                    <Navigation size={14} /> Get Directions
+                  </a>
+                )}
+              </div>
+              
+              {venue.location?.coordinates ? (
+                <div className="h-64 relative rounded-2xl overflow-hidden border border-border-custom bg-card-bg z-0">
+                  <LeafletMap
+                    markers={[{
+                      id: venue.id || venue._id,
+                      title: venue.title,
+                      price: venue.pricing.pricePerDay,
+                      lat: venue.location.coordinates[1],
+                      lng: venue.location.coordinates[0],
+                      slug: venue.slug,
+                      imageUrl: venue.featuredImage,
+                      venueType: venue.venueType,
+                    }]}
+                    center={[venue.location.coordinates[1], venue.location.coordinates[0]]}
+                    zoom={14}
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-text">Map location not available for this venue.</p>
               )}
             </div>
 
@@ -1036,6 +1092,43 @@ export default function CustomerVenueDetails() {
           </div>
 
         </div>
+
+        {/* Geolocation Nearby Similar spaces list */}
+        {nearbyVenues.length > 0 && (
+          <div className="border-t border-border-custom/30 pt-10 mt-10">
+            <h2 className="text-2xl font-black text-primary-text mb-6">Nearby & Similar Venues</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {nearbyVenues.map((v) => (
+                <article
+                  key={v._id || v.id}
+                  onClick={() => window.location.href = `/venues/${v.slug}`}
+                  className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="h-36 bg-border-custom/10 relative overflow-hidden">
+                      <img
+                        src={v.featuredImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80'}
+                        alt={v.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-2 left-2 bg-surface/90 backdrop-blur-xs text-[8px] font-bold text-primary px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        {v.venueType.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <div className="p-4 flex flex-col gap-1">
+                      <h3 className="text-sm font-extrabold text-primary-text line-clamp-1">{v.title}</h3>
+                      <p className="text-xs text-body-text">{v.city}, {v.state}</p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 border-t border-border-custom/15 bg-card-bg flex justify-between items-center text-xs font-semibold">
+                    <span className="text-body-text flex items-center gap-1 text-[11px]"><Users size={12} /> Max {v.capacity}</span>
+                    <span className="text-primary font-bold text-[11px]">₹{v.pricing.pricePerDay.toLocaleString('en-IN')}/day</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </main>
