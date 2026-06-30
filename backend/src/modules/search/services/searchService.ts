@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { Venue } from '../../venues/models/Venue.js';
 import { Booking } from '../../bookings/models/Booking.js';
 import { SearchHistory } from '../models/SearchHistory.js';
+import { Wishlist } from '../../reviews/models/Wishlist.js';
 import { logger } from '../../../utils/logger.js';
 
 export interface SearchParams {
@@ -295,4 +296,139 @@ export const executeSuggestionsAutocomplete = async (q: string) => {
   });
 
   return suggestions;
+};
+
+/**
+ * Generate personalized recommendations using customer search history, wishlist, previous bookings,
+ * or fallback to highest rated / featured venues for guests or new users.
+ */
+export const executeRecommendations = async (customerId?: string, limit: number = 6) => {
+  const fallbackQuery = {
+    isDeleted: false,
+    approvalStatus: 'APPROVED',
+    publicationStatus: 'PUBLISHED',
+  };
+
+  const getFallbackVenues = () => {
+    return Venue.find(fallbackQuery)
+      .sort({ rating: -1, reviewCount: -1 })
+      .limit(limit)
+      .lean();
+  };
+
+  if (!customerId) {
+    logger.info('💡 Guest recommendations request: falling back to highest rated venues');
+    return getFallbackVenues();
+  }
+
+  try {
+    const custId = new Types.ObjectId(customerId);
+
+    // 1. Gather Search History keywords/cities/venueTypes
+    const searchHistory = await SearchHistory.find({ customerId: custId })
+      .sort({ searchedAt: -1 })
+      .limit(10)
+      .lean();
+
+    // 2. Gather Wishlist items
+    const wishlistItems = await Wishlist.find({ customerId: custId }).lean();
+    const wishlistedVenueIds = wishlistItems.map((item) => item.venueId);
+
+    // 3. Gather Bookings
+    const bookings = await Booking.find({
+      customerId: custId,
+      bookingStatus: { $ne: 'CANCELLED' },
+    })
+      .limit(10)
+      .lean();
+    const bookedVenueIds = bookings.map((b) => b.venueId);
+
+    // 4. Combine venue IDs to exclude
+    const excludeVenueIds = Array.from(
+      new Set([...wishlistedVenueIds.map(id => id.toString()), ...bookedVenueIds.map(id => id.toString())])
+    ).map((id) => new Types.ObjectId(id));
+
+    // 5. Query details of user booked & wishlisted venues to extract categories
+    const interactiveVenueIds = [...wishlistedVenueIds, ...bookedVenueIds];
+    let preferredVenueTypes: string[] = [];
+    let preferredCities: string[] = [];
+
+    if (interactiveVenueIds.length > 0) {
+      const interactiveVenues = await Venue.find({
+        _id: { $in: interactiveVenueIds },
+      })
+        .select('venueType city')
+        .lean();
+      
+      preferredVenueTypes = interactiveVenues.map((v) => v.venueType);
+      preferredCities = interactiveVenues.map((v) => v.city);
+    }
+
+    // Include categories from search history filters
+    searchHistory.forEach((hist) => {
+      if (hist.filters) {
+        if (hist.filters.venueType) preferredVenueTypes.push(hist.filters.venueType);
+        if (hist.filters.city) preferredCities.push(hist.filters.city);
+      }
+    });
+
+    preferredVenueTypes = Array.from(new Set(preferredVenueTypes));
+    preferredCities = Array.from(new Set(preferredCities));
+
+    // 6. Build recommended matching query
+    const matchQuery: any = {
+      isDeleted: false,
+      approvalStatus: 'APPROVED',
+      publicationStatus: 'PUBLISHED',
+      _id: { $nin: excludeVenueIds }, // exclude already wishlisted or booked
+    };
+
+    const criteria: any[] = [];
+    if (preferredVenueTypes.length > 0) {
+      criteria.push({ venueType: { $in: preferredVenueTypes } });
+    }
+    if (preferredCities.length > 0) {
+      criteria.push({ city: { $in: preferredCities.map((c) => new RegExp(c, 'i')) } });
+    }
+
+    if (criteria.length > 0) {
+      matchQuery.$or = criteria;
+    } else {
+      // No personalized attributes found: return highest rated fallback
+      return getFallbackVenues();
+    }
+
+    logger.info(`💡 Generating recommended query for user ${customerId}: ${JSON.stringify(matchQuery)}`);
+
+    let recommended = await Venue.find(matchQuery)
+      .sort({ rating: -1, reviewCount: -1 })
+      .limit(limit)
+      .lean();
+
+    // If matches are less than the limit, fill the remaining slots with fallback venues
+    if (recommended.length < limit) {
+      const remainingCount = limit - recommended.length;
+      const recommendedIds = recommended.map((r) => r._id.toString());
+      const allExclude = Array.from(new Set([...excludeVenueIds.map(id => id.toString()), ...recommendedIds])).map(
+        (id) => new Types.ObjectId(id)
+      );
+
+      const fillVenues = await Venue.find({
+        isDeleted: false,
+        approvalStatus: 'APPROVED',
+        publicationStatus: 'PUBLISHED',
+        _id: { $nin: allExclude },
+      })
+        .sort({ rating: -1, reviewCount: -1 })
+        .limit(remainingCount)
+        .lean();
+
+      recommended = [...recommended, ...fillVenues];
+    }
+
+    return recommended;
+  } catch (error) {
+    logger.error('❌ Error generating recommended list:', error);
+    return getFallbackVenues();
+  }
 };

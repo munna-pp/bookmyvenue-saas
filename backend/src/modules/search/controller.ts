@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete } from './services/searchService.js';
+import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete, executeRecommendations } from './services/searchService.js';
 import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
 import { AppError } from '../../middleware/errorHandler.js';
@@ -83,6 +83,34 @@ export const getSuggestions = async (
     });
   } catch (error) {
     logger.error('❌ Error executing suggestions autocomplete controller:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/search/recommended
+ * Fetch user-tailored recommendations based on bookings/wishlist/history
+ */
+export const getRecommendations = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?._id?.toString();
+    const { limit = 6 } = req.query;
+    const limitNum = Math.max(1, parseInt(limit as string, 10));
+
+    const recommendations = await executeRecommendations(customerId, limitNum);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        venues: recommendations,
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error executing recommendations controller:', error);
     next(error);
   }
 };
