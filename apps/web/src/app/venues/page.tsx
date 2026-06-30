@@ -389,7 +389,7 @@ export default function CustomerVenuesBrowse() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {venues.map((venue) => (
                 <article
-                  key={venue.id || venue._id}
+                  key={venue.id}
                   onClick={() => window.location.href = `/venues/${venue.slug}`}
                   className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition duration-200 cursor-pointer flex flex-col justify-between"
                 >
