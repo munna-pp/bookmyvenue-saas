@@ -23,4 +23,9 @@ router.post('/reviews', protect, validate(createReviewSchema), controller.create
 router.put('/reviews/:id', protect, validate(updateReviewSchema), controller.updateReview);
 router.delete('/reviews/:id', protect, controller.deleteReview);
 
+// Wishlist endpoints
+router.post('/wishlist/:venueId', protect, controller.addToWishlist);
+router.delete('/wishlist/:venueId', protect, controller.removeFromWishlist);
+router.get('/wishlist', protect, controller.getWishlist);
+
 export default router;

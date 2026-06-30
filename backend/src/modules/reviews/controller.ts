@@ -268,3 +268,178 @@ export const getVenueReviews = async (
     next(error);
   }
 };
+
+/**
+ * POST /api/v1/wishlist/:venueId
+ * Add venue to customer wishlist
+ */
+export const addToWishlist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?._id;
+    const { venueId } = req.params;
+
+    if (!customerId) {
+      next(new AppError('Unauthorized', 401));
+      return;
+    }
+
+    // Verify venue exists
+    const venue = await Venue.findOne({ _id: venueId, isDeleted: false });
+    if (!venue) {
+      next(new AppError('Venue not found', 404));
+      return;
+    }
+
+    logger.info(`❤️ Adding venue ${venueId} to wishlist of customer ${customerId}`);
+
+    // Prevent duplicates using upsert
+    const wishlist = await Wishlist.findOneAndUpdate(
+      { customerId, venueId },
+      { $setOnInsert: { customerId, venueId, createdAt: new Date() } },
+      { upsert: true, new: true }
+    );
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Venue added to wishlist successfully',
+      data: { wishlist },
+    });
+  } catch (error) {
+    logger.error('❌ Error adding to wishlist:', error);
+    next(error);
+  }
+};
+
+/**
+ * DELETE /api/v1/wishlist/:venueId
+ * Remove venue from customer wishlist
+ */
+export const removeFromWishlist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?._id;
+    const { venueId } = req.params;
+
+    if (!customerId) {
+      next(new AppError('Unauthorized', 401));
+      return;
+    }
+
+    logger.info(`💔 Removing venue ${venueId} from wishlist of customer ${customerId}`);
+
+    const result = await Wishlist.findOneAndDelete({ customerId, venueId });
+    if (!result) {
+      next(new AppError('Wishlist entry not found', 404));
+      return;
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Venue removed from wishlist successfully',
+    });
+  } catch (error) {
+    logger.error('❌ Error removing from wishlist:', error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/v1/wishlist
+ * List customer wishlist items with sorting and pagination
+ */
+export const getWishlist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?._id;
+    const { sortBy = 'newest', page = 1, limit = 10 } = req.query;
+
+    if (!customerId) {
+      next(new AppError('Unauthorized', 401));
+      return;
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.max(1, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    logger.info(`📋 Fetching wishlist items for customer: ${customerId} (page: ${pageNum}, limit: ${limitNum}, sortBy: ${sortBy})`);
+
+    // Fetch wishlist entries (sorted newest first by default to align savedDate mapping)
+    const wishlistItems = await Wishlist.find({ customerId }).sort({ createdAt: -1 });
+    const venueIds = wishlistItems.map((item) => item.venueId);
+
+    if (venueIds.length === 0) {
+      res.status(200).json({
+        status: 'success',
+        data: {
+          wishlist: [],
+          total: 0,
+          page: pageNum,
+          pages: 1,
+        },
+      });
+      return;
+    }
+
+    // Determine sorting options for populated venues
+    let sortOptions: any = {};
+    if (sortBy === 'newest') {
+      sortOptions = { createdAt: -1 };
+    } else if (sortBy === 'oldest') {
+      sortOptions = { createdAt: 1 };
+    } else if (sortBy === 'highest_rated') {
+      sortOptions = { rating: -1 };
+    } else if (sortBy === 'lowest_price') {
+      sortOptions = { 'pricing.pricePerDay': 1 };
+    } else {
+      sortOptions = { createdAt: -1 };
+    }
+
+    const venues = await Venue.find({
+      _id: { $in: venueIds },
+      isDeleted: false,
+    })
+      .sort(sortOptions)
+      .lean();
+
+    // Map populated venues back to wishlist items to preserve savedDate
+    const populated = wishlistItems
+      .map((item) => {
+        const venue = venues.find((v) => v._id.toString() === item.venueId.toString());
+        if (!venue) return null;
+        return {
+          _id: item._id,
+          venueId: item.venueId,
+          createdAt: item.createdAt,
+          venue,
+        };
+      })
+      .filter((item) => item !== null);
+
+    const total = populated.length;
+    const paginated = populated.slice(skip, skip + limitNum);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        wishlist: paginated,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    logger.error('❌ Error fetching wishlist:', error);
+    next(error);
+  }
+};
