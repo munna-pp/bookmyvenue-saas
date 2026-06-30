@@ -37,6 +37,26 @@ export default function CustomerVenueDetails() {
   const [bookedDates, setBookedDates] = useState<any[]>([]);
   const [blockedDates, setBlockedDates] = useState<any[]>([]);
 
+  // Wishlist and Reviews state variables
+  const [inWishlist, setInWishlist] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewPages, setReviewPages] = useState(1);
+  const [reviewSort, setReviewSort] = useState('newest');
+  const [starDistribution, setStarDistribution] = useState<any>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+
+  // Review submission inputs
+  const [completedBookings, setCompletedBookings] = useState<any[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState('');
+  const [newRating, setNewRating] = useState(5);
+  const [newTitle, setNewTitle] = useState('');
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newImages, setNewImages] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
+
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -63,10 +83,133 @@ export default function CustomerVenueDetails() {
       
       // Load availability calendar for this venue
       fetchCalendar(v.id);
+      
+      // Fetch reviews and wishlist check
+      fetchReviews(v.id, reviewPage, reviewSort);
+      checkWishlist(v.id);
+      fetchCompletedBookings(v.id);
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong while retrieving venue details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async (venueId: string, pageNum: number, sort: string) => {
+    try {
+      const res = await fetch(getApiUrl(`/api/v1/venues/${venueId}/reviews?page=${pageNum}&limit=5&sortBy=${sort}`));
+      const result = await res.json();
+      if (res.ok) {
+        setReviews(result.data.reviews || []);
+        setTotalReviews(result.data.total || 0);
+        setReviewPages(result.data.pages || 1);
+        setStarDistribution(result.data.starDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+      }
+    } catch (err) {
+      console.error('Failed to load venue reviews:', err);
+    }
+  };
+
+  const checkWishlist = async (venueId: string) => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+    try {
+      const res = await fetch(getApiUrl('/api/v1/wishlist'), { headers });
+      const result = await res.json();
+      if (res.ok) {
+        const found = result.data.wishlist.some((item: any) => item.venueId === venueId);
+        setInWishlist(found);
+      }
+    } catch (err) {
+      console.error('Failed to check wishlist status:', err);
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!venue) return;
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) {
+      alert('Please sign in to save venues to your wishlist.');
+      return;
+    }
+
+    try {
+      const method = inWishlist ? 'DELETE' : 'POST';
+      const url = getApiUrl(`/api/v1/wishlist/${venue.id}`);
+      const res = await fetch(url, { method, headers });
+      if (res.ok) {
+        setInWishlist(!inWishlist);
+      } else {
+        alert('Failed to update wishlist.');
+      }
+    } catch (err) {
+      alert('Network error updating wishlist.');
+    }
+  };
+
+  const fetchCompletedBookings = async (venueId: string) => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+    try {
+      const res = await fetch(getApiUrl('/api/v1/bookings/my'), { headers });
+      const result = await res.json();
+      if (res.ok) {
+        // Find bookings matching this venue and status COMPLETED
+        const list = (result.data.bookings || []).filter((b: any) => 
+          b.venueId === venueId && b.bookingStatus === 'COMPLETED'
+        );
+        setCompletedBookings(list);
+        if (list.length > 0) {
+          setSelectedBookingId(list[0]._id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user completed bookings:', err);
+    }
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBookingId) {
+      setReviewSubmitError('Please select a booking to review.');
+      return;
+    }
+
+    setReviewSubmitError(null);
+    const headers = {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    };
+
+    try {
+      const res = await fetch(getApiUrl('/api/v1/reviews'), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          bookingId: selectedBookingId,
+          rating: newRating,
+          title: newTitle,
+          review: newReviewText,
+          images: newImages,
+        }),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        setReviewSubmitSuccess(true);
+        setNewTitle('');
+        setNewReviewText('');
+        setNewImages([]);
+        // Reload reviews and venue rating updates
+        if (venue) {
+          fetchReviews(venue.id, reviewPage, reviewSort);
+          fetchVenueDetails();
+        }
+      } else {
+        setReviewSubmitError(result.message || 'Failed to submit review.');
+      }
+    } catch (err) {
+      setReviewSubmitError('Error submitting review. Please try again.');
     }
   };
 
@@ -198,12 +341,24 @@ export default function CustomerVenueDetails() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col gap-8">
         
         {/* Title and Category Header */}
-        <div>
-          <span className="text-xs font-bold text-accent uppercase tracking-wider">{venue.category}</span>
-          <h1 className="text-3xl font-extrabold text-primary-text mt-1">{venue.title}</h1>
-          <p className="text-xs text-body-text flex items-center gap-1 mt-2">
-            <MapPin size={14} className="text-muted-text" /> {venue.address.street}, {venue.address.city}, {venue.address.state}, {venue.address.country}
-          </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span className="text-xs font-bold text-accent uppercase tracking-wider">{venue.category}</span>
+            <h1 className="text-3xl font-extrabold text-primary-text mt-1">{venue.title}</h1>
+            <p className="text-xs text-body-text flex items-center gap-1 mt-2">
+              <MapPin size={14} className="text-muted-text" /> {venue.address.street}, {venue.address.city}, {venue.address.state}, {venue.address.country}
+            </p>
+          </div>
+          <button
+            onClick={toggleWishlist}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-extrabold shadow-sm transition hover:scale-[1.02] cursor-pointer ${
+              inWishlist 
+                ? 'bg-red-50 border-red-200 text-red-600' 
+                : 'bg-surface border-border-custom text-secondary-text hover:text-primary-text'
+            }`}
+          >
+            <span>{inWishlist ? '❤️ Favorited' : '🤍 Add to Wishlist'}</span>
+          </button>
         </div>
 
         {/* Responsive Grid: Image Carousel & Booking Card */}
@@ -546,6 +701,335 @@ export default function CustomerVenueDetails() {
               <div className="flex gap-2 items-center justify-center text-[10px] text-muted-text font-medium pt-2 border-t border-border-custom/10">
                 <ShieldCheck size={14} className="text-accent" /> Secure Payment & Booking Protection
               </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ========================================== */}
+        {/* REVIEWS & RATINGS SECTION                  */}
+        {/* ========================================== */}
+        <div className="border-t border-border-custom/30 pt-10 mt-6 flex flex-col gap-10">
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-custom/25 pb-6">
+            <div>
+              <h2 className="text-2xl font-black text-primary-text">Reviews & Ratings</h2>
+              <p className="text-xs text-secondary-text mt-1">Verified reviews from hosts and guests</p>
+            </div>
+            
+            {/* Sorter */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-secondary-text uppercase">Sort:</span>
+              <select
+                value={reviewSort}
+                onChange={(e) => {
+                  setReviewSort(e.target.value);
+                  fetchReviews(venue.id, 1, e.target.value);
+                  setReviewPage(1);
+                }}
+                className="bg-surface border border-border-custom px-4 py-2 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="highest_rating">Highest Rated</option>
+                <option value="lowest_rating">Lowest Rated</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            {/* Left side: Stats Breakdown summary */}
+            <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-xs">
+              <div className="text-center md:text-left">
+                <span className="text-5xl font-black text-primary-text">{venue.rating || '0.0'}</span>
+                <div className="flex items-center justify-center md:justify-start gap-1 mt-2 text-xl text-amber-500">
+                  {'★'.repeat(Math.round(venue.rating || 0))}
+                  {'☆'.repeat(5 - Math.round(venue.rating || 0))}
+                </div>
+                <span className="block text-xs text-muted-text mt-2 font-medium">Based on {totalReviews} verified reviews</span>
+              </div>
+
+              {/* Star Distribution list */}
+              <div className="space-y-2.5 border-t border-border-custom/25 pt-5">
+                {[5, 4, 3, 2, 1].map((stars) => {
+                  const count = starDistribution[stars] || 0;
+                  const percent = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+                  return (
+                    <div key={stars} className="flex items-center gap-3 text-xs">
+                      <span className="w-10 font-bold text-secondary-text">{stars} Star</span>
+                      <div className="flex-1 h-2 bg-muted/65 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-500 rounded-full"
+                          style={{ width: `${percent}%` }}
+                        ></div>
+                      </div>
+                      <span className="w-8 text-right font-medium text-muted-text">{percent}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Middle/Right side: Reviews List & Write Review form */}
+            <div className="lg:col-span-2 flex flex-col gap-8">
+              
+              {/* Write Review Form */}
+              {completedBookings.length > 0 && !reviewSubmitSuccess && (
+                <div className="bg-surface border border-primary/20 rounded-3xl p-6 md:p-8 shadow-xs flex flex-col gap-5">
+                  <div>
+                    <span className="bg-primary/10 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                      Share Feedback
+                    </span>
+                    <h3 className="text-lg font-bold text-primary-text mt-2">Write a Review</h3>
+                    <p className="text-xs text-secondary-text mt-1">You have completed a booking at this venue. Share your experience!</p>
+                  </div>
+
+                  {reviewSubmitError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl">
+                      {reviewSubmitError}
+                    </div>
+                  )}
+
+                  <form onSubmit={submitReview} className="space-y-4">
+                    {/* Booking Selector */}
+                    {completedBookings.length > 1 && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5">
+                          Select Booking Number
+                        </label>
+                        <select
+                          value={selectedBookingId}
+                          onChange={(e) => setSelectedBookingId(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-card-bg border border-border-custom/50 rounded-xl text-xs"
+                        >
+                          {completedBookings.map((b) => (
+                            <option key={b._id} value={b._id}>
+                              #{b.bookingNumber} - {new Date(b.eventDate).toLocaleDateString()}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Interactive Star rating */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5">
+                        Your Rating
+                      </label>
+                      <div className="flex gap-1.5 text-2xl">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setNewRating(star)}
+                            className={`cursor-pointer transition hover:scale-110 ${star <= newRating ? 'text-amber-500' : 'text-muted-text/30'}`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="reviewTitle">
+                          Review Title
+                        </label>
+                        <input
+                          id="reviewTitle"
+                          type="text"
+                          required
+                          placeholder="Summarize your experience"
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-card-bg border border-border-custom/50 rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="imgUrl">
+                          Add Image URL (Optional)
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            id="imgUrl"
+                            type="text"
+                            placeholder="https://example.com/image.jpg"
+                            value={newImageUrl}
+                            onChange={(e) => setNewImageUrl(e.target.value)}
+                            className="flex-1 px-4 py-2 bg-card-bg border border-border-custom/50 rounded-xl text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (newImageUrl.startsWith('http')) {
+                                setNewImages([...newImages, newImageUrl]);
+                                setNewImageUrl('');
+                              } else {
+                                alert('Please provide a valid HTTP URL link');
+                              }
+                            }}
+                            className="bg-primary text-surface px-4 rounded-xl text-xs font-bold"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {newImages.length > 0 && (
+                      <div className="flex gap-2 flex-wrap">
+                        {newImages.map((img, idx) => (
+                          <div key={idx} className="relative h-10 w-15 border border-border-custom rounded-md overflow-hidden">
+                            <img src={img} className="object-cover h-full w-full" />
+                            <button
+                              type="button"
+                              onClick={() => setNewImages(newImages.filter((_, i) => i !== idx))}
+                              className="absolute top-0 right-0 bg-danger text-surface text-[8px] font-bold h-4 w-4 flex items-center justify-center rounded-bl-md"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="reviewBody">
+                        Review Message
+                      </label>
+                      <textarea
+                        id="reviewBody"
+                        rows={4}
+                        required
+                        placeholder="Tell others about the facilities, cleanliness, host service, and amenities..."
+                        value={newReviewText}
+                        onChange={(e) => setNewReviewText(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-card-bg border border-border-custom/50 rounded-xl text-xs focus:outline-none"
+                      ></textarea>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="bg-primary text-surface px-6 py-2.5 rounded-xl text-xs font-bold shadow-xs hover:bg-primary/95 transition cursor-pointer"
+                    >
+                      Submit Review
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {reviewSubmitSuccess && (
+                <div className="bg-green-50 border border-green-200 p-6 rounded-3xl text-center">
+                  <span className="text-3xl">⭐</span>
+                  <h4 className="text-sm font-bold text-green-800 mt-2">Thank you for your feedback!</h4>
+                  <p className="text-xs text-green-700 mt-1">Your review has been verified and successfully published to the listing page.</p>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              {reviews.length === 0 ? (
+                <div className="text-center py-16 border border-dashed border-border-custom rounded-3xl bg-surface/50">
+                  <span className="text-4xl">💬</span>
+                  <h4 className="text-sm font-bold text-secondary-text mt-4">No Reviews Yet</h4>
+                  <p className="text-xs text-muted-text mt-1">Be the first to review this venue after your completed event!</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {reviews.map((item) => (
+                    <div
+                      key={item._id}
+                      className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs flex flex-col gap-4"
+                    >
+                      {/* Customer Info row */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="font-extrabold text-sm text-primary-text">{item.customerId?.name || 'Anonymous User'}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="text-amber-500 text-xs">
+                              {'★'.repeat(item.rating)}
+                              {'☆'.repeat(5 - item.rating)}
+                            </div>
+                            {item.isVerifiedPurchase && (
+                              <span className="bg-green-50 text-green-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full border border-green-200 uppercase">
+                                Verified Purchase
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-muted-text font-bold uppercase">
+                          {new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div>
+                        <h4 className="font-extrabold text-sm text-primary-text">{item.title}</h4>
+                        <p className="text-xs text-body-text mt-1.5 leading-relaxed">{item.review}</p>
+                      </div>
+
+                      {/* Review Images */}
+                      {item.images && item.images.length > 0 && (
+                        <div className="flex gap-2">
+                          {item.images.map((imgUrl: string, i: number) => (
+                            <div key={i} className="h-14 w-20 rounded-lg overflow-hidden border border-border-custom">
+                              <img src={imgUrl} className="object-cover h-full w-full" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Owner Reply card */}
+                      {item.ownerReply && (
+                        <div className="bg-muted/40 border border-border-custom/50 rounded-2xl p-4 mt-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-black text-primary uppercase">Host Response</span>
+                            <span className="text-[8px] text-muted-text uppercase font-bold">
+                              {new Date(item.ownerReply.repliedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-body-text italic">"{item.ownerReply.reply}"</p>
+                        </div>
+                      )}
+
+                    </div>
+                  ))}
+
+                  {/* Reviews Pagination footer */}
+                  {reviewPages > 1 && (
+                    <div className="flex justify-between items-center border-t border-border-custom/25 pt-4">
+                      <span className="text-xs text-secondary-text font-medium">Page {reviewPage} of {reviewPages}</span>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={reviewPage <= 1}
+                          onClick={() => {
+                            const prev = reviewPage - 1;
+                            setReviewPage(prev);
+                            fetchReviews(venue.id, prev, reviewSort);
+                          }}
+                          className="bg-surface border border-border-custom text-primary-text px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-40 transition cursor-pointer"
+                        >
+                          Prev
+                        </button>
+                        <button
+                          disabled={reviewPage >= reviewPages}
+                          onClick={() => {
+                            const next = reviewPage + 1;
+                            setReviewPage(next);
+                            fetchReviews(venue.id, next, reviewSort);
+                          }}
+                          className="bg-surface border border-border-custom text-primary-text px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-40 transition cursor-pointer"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              )}
 
             </div>
 
