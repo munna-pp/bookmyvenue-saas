@@ -246,7 +246,7 @@ export default function CustomerVenuesBrowse() {
   const mapMarkers = venues
     .filter((v) => v.location && v.location.coordinates)
     .map((v) => ({
-      id: v._id || v.id,
+      id: v.id,
       title: v.title,
       price: v.pricing.pricePerDay,
       lat: v.location.coordinates[1],
