@@ -2,6 +2,19 @@
 
 All notable changes to the BookMyVenue booking monolith will be documented in this file.
 
+## [0.7.0] - 2026-06-30
+
+### Added
+
+- Advanced Search engine with full-text keyword queries, capacity limits, price ranges, rating minimums, amenities checks, and availability dates.
+- Geospatial radial nearby queries matching coordinate ranges (1km to 100km) utilizing MongoDB `2dsphere` indexes.
+- Debounced instant autocomplete suggestion drop-downs grouping venue titles, matching cities, and types.
+- Personalized recommendation engine aggregating customer search history log counts, wishlists, and bookings.
+- Search Analytics compiling total logs, popular keywords, cities, venue types, and zero-result queries.
+- Next.js 15 split screen layouts dynamically integrating Leaflet OpenStreetMap markers, circular radius ranges, custom popup pins, list toggles, and skeletons.
+- Single venue location maps rendering directions links to Google Maps coordinates.
+- E2E search integration validation script.
+
 ## [0.6.0] - 2026-06-29
 
 ### Added

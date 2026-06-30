@@ -155,3 +155,14 @@ To run E2E integration test verification for venue reviews, automated rating rec
 # Run verification script against the active local Express container
 node backend/src/config/verify_reviews.js
 ```
+
+---
+
+## E2E Advanced Search & Maps Integration Tests
+
+To run E2E integration test verification for advanced search queries, debounced autocomplete suggestions, coordinates geospatial radius proximity matches, recommendations lists, search histories, and analytics tracking:
+
+```bash
+# Run verification script against the active local Express container
+node backend/src/config/verify_search.js
+```
