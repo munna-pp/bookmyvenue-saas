@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete, executeRecommendations, executeGetSearchAnalytics, executeGetTrending, executeGetFeatured } from './services/searchService.js';
 import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
-import { AppError } from '../../middleware/errorHandler.js';
 
 /**
  * GET /api/v1/search/venues

@@ -114,7 +114,7 @@ export const optionalProtect = async (req: Request, res: Response, next: NextFun
       req.user = currentUser;
     }
     next();
-  } catch (error) {
+  } catch {
     next();
   }
 };
