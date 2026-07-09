@@ -18,6 +18,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\"",
     "prepare": "node -e \"try { if (require('fs').existsSync('.git')) { require('child_process').execSync('husky install', { stdio: 'inherit' }) } } catch (e) {}\""
   },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
   "workspaces": [
     "apps/*",
     "backend",

@@ -1,23 +1,25 @@
 # Express backend application Dockerfile (Production Build)
-FROM node:20-alpine AS base
+FROM node:20-alpine AS builder
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
-# Dependencies stage: install production dependencies only
-FROM base AS dependencies
+# Copy package definitions for monorepo caching
 COPY package*.json ./
 COPY packages/shared-types/package*.json ./packages/shared-types/
+COPY apps/web/package*.json ./apps/web/
+COPY apps/admin/package*.json ./apps/admin/
+COPY apps/owner/package*.json ./apps/owner/
 COPY backend/package*.json ./backend/
-RUN npm ci --omit=dev --legacy-peer-deps
 
-# Builder stage: compile TypeScript sources
-FROM base AS builder
-COPY package*.json ./
-COPY packages/shared-types/package*.json ./packages/shared-types/
-COPY backend/package*.json ./backend/
+# Install all dependencies (including devDependencies) to compile
 RUN npm ci --legacy-peer-deps
+
+# Copy source code and build shared-types & backend
 COPY . .
 RUN npm run build --workspace=@bookmyvenue/shared-types && npm run build:backend
+
+# Reinstall production-only dependencies for backend and shared-types workspaces
+RUN rm -rf node_modules && npm install --omit=dev --workspace=backend --workspace=@bookmyvenue/shared-types --legacy-peer-deps
 
 # Runner stage: deploy the minimal runtime files
 FROM node:20-alpine AS runner
@@ -27,8 +29,8 @@ ENV NODE_ENV=production
 # Create non-root system group and user
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# Copy runtime files
-COPY --from=dependencies /app/node_modules ./node_modules
+# Copy pruned node_modules and compiled dist files
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/shared-types/package.json ./packages/shared-types/package.json
 COPY --from=builder /app/backend/dist ./backend/dist
