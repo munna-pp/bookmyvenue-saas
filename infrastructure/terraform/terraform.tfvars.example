@@ -1,0 +1,22 @@
+# Example terraform.tfvars input file.
+# Copy this file to terraform.tfvars and insert actual environment credentials. Do not commit actual secrets!
+
+aws_region                 = "us-east-1"
+aws_profile                = "my-aws-profile"
+environment                = "staging" # options: staging, production
+project_name               = "bookmyvenue"
+eks_cluster_name           = "bmv-eks-cluster"
+eks_kubernetes_version     = "1.30"
+
+# MongoDB Atlas settings (Replace with placeholders or actual values on local machine)
+mongodb_atlas_org_id       = "PLACEHOLDER_MONGODB_ATLAS_ORG_ID"
+mongodb_atlas_project_id   = "PLACEHOLDER_MONGODB_ATLAS_PROJECT_ID"
+mongodb_atlas_cluster_name = "bmv-atlas-cluster"
+mongodb_atlas_public_key   = "PLACEHOLDER_MONGODB_ATLAS_PUBLIC_KEY"
+mongodb_atlas_private_key  = "PLACEHOLDER_MONGODB_ATLAS_PRIVATE_KEY"
+mongodb_atlas_db_user      = "bmv-app-user"
+mongodb_atlas_db_password  = "PLACEHOLDER_MONGODB_ATLAS_DB_PASSWORD"
+
+# AWS ElastiCache settings
+redis_node_type            = "cache.t4g.medium"
+redis_num_cache_nodes      = 2
