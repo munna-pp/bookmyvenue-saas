@@ -1,25 +1,28 @@
+terraform {
+  required_providers {
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = "~> 1.15"
+    }
+  }
+}
+
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id   = var.mongodb_atlas_project_id
   name         = var.mongodb_atlas_cluster_name
   cluster_type = "REPLICASET"
 
   replication_specs {
-    num_shards = 1
-    regions_config {
-      active_nodes    = 3
-      priority        = 7
-      read_only_nodes = 0
-      region_name     = "US_EAST_1"
+    region_configs {
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+      priority      = 7
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  provider_backup_enabled                 = true
-  auto_scaling_compute_enabled            = true
-  auto_scaling_compute_scale_down_enabled = true
-
-  # Provider Specifications
-  provider_name               = "AWS"
-  provider_instance_size_name = "M10" # Shared/dedicated tier for production scaling
 }
 
 resource "mongodbatlas_database_user" "db_user" {
