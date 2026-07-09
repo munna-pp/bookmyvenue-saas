@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import { apiRateLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
+import { metricsMiddleware, metricsEndpoint } from './middleware/metrics.js';
+
 
 
 // Import modules
@@ -19,6 +21,9 @@ import reviewsRouter from './modules/reviews/routes.js';
 import searchRouter from './modules/search/routes.js';
 
 const app: Express = express();
+
+// Metrics tracking middleware (must run first to capture all incoming requests)
+app.use(metricsMiddleware);
 
 // Security Middlewares
 app.use(helmet());
@@ -44,6 +49,9 @@ app.use(
     stream: { write: (message: string) => logger.info(message.trim()) },
   })
 );
+
+// Metrics endpoint for Prometheus scraping
+app.get('/metrics', metricsEndpoint);
 
 // Global Health Check
 app.get('/health', (req: Request, res: Response) => {

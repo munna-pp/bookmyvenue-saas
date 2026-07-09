@@ -1,0 +1,20 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'admin-notifications'
+
+receivers:
+  - name: 'admin-notifications'
+    # Configured with safe/empty mock alerts routing settings (e.g. email / webhooks)
+    email_configs:
+      - to: 'admin@bookmyvenue.com'
+        from: 'alerts@bookmyvenue.com'
+        smarthost: 'smtp.mailtrap.io:2525'
+        auth_username: 'smtp-username-placeholder'
+        auth_password: 'smtp-password-placeholder'
+        require_tls: false

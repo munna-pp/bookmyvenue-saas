@@ -64,3 +64,13 @@ export const closeDatabases = async (): Promise<void> => {
   );
   logger.info('All MongoDB connections closed.');
 };
+
+/**
+ * Check if all registered module databases are connected (readyState === 1)
+ */
+export const getDatabaseHealth = (): boolean => {
+  const values = Object.values(connections);
+  if (values.length === 0) return false;
+  return values.every((conn) => conn.readyState === 1);
+};
+

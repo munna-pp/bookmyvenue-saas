@@ -152,6 +152,21 @@ services:
       - "9090:9090"
     volumes:
       - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    depends_on:
+      - alertmanager
+    networks:
+      - bmv-network
+
+  # Alertmanager (Alert router)
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: bmv-alertmanager
+    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./infrastructure/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     networks:
       - bmv-network
 
@@ -197,6 +212,8 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./infrastructure/monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./infrastructure/monitoring/grafana-dashboards-prov.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./infrastructure/monitoring/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus

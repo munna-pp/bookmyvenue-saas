@@ -1,0 +1,62 @@
+groups:
+  - name: bookmyvenue-alerts
+    rules:
+      # Alert if the backend service is offline
+      - alert: BackendServiceDown
+        expr: up{job="bookmyvenue-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Express Backend monolith is offline"
+          description: "The backend container has been down for more than 30 seconds."
+
+      # Alert if MongoDB module connections are down
+      - alert: MongoDBDatabaseDown
+        expr: mongodb_up == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB connection loss"
+          description: "One or more database connections from the backend to MongoDB are unreachable."
+
+      # Alert if Redis cache is down
+      - alert: RedisCacheDown
+        expr: redis_up == 0
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis cache disconnected"
+          description: "The connection from the backend to the Redis cache cluster is unreachable."
+
+      # Alert on high CPU utilization
+      - alert: HighCPUUsage
+        expr: process_cpu_seconds_total > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on Node process"
+          description: "Express Node.js runtime CPU usage has exceeded 80% for 2 minutes."
+
+      # Alert on high memory utilization
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes > 536870912 # 512MB
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory usage on Node process"
+          description: "Node.js heap resident memory has exceeded 512MB for 2 minutes."
+
+      # Alert on high error rate
+      - alert: HighHTTPErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) * 100 > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "Server HTTP 5xx responses represent more than 5% of total requests over the last 1 minute."

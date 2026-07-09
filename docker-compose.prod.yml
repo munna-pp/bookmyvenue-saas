@@ -159,9 +159,88 @@ services:
     networks:
       - bmv-prod-network
 
+  # Prometheus (Metrics Collector)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bmv-prometheus-prod
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    depends_on:
+      - alertmanager
+    networks:
+      - bmv-prod-network
+
+  # Alertmanager (Alert router)
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: bmv-alertmanager-prod
+    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./infrastructure/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - bmv-prod-network
+
+  # Loki (Log Engine)
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: bmv-loki-prod
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infrastructure/monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - bmv-prod-network
+
+  # Promtail (Log Shipper)
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: bmv-promtail-prod
+    restart: always
+    volumes:
+      - ./infrastructure/monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      # For shipping container logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - bmv-prod-network
+
+  # Grafana (Metrics & Logs Viewer)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bmv-grafana-prod
+    restart: always
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./infrastructure/monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./infrastructure/monitoring/grafana-dashboards-prov.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./infrastructure/monitoring/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_prod_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - bmv-prod-network
+
 volumes:
   mongodb_prod_data:
   redis_prod_data:
+  grafana_prod_data:
 
 networks:
   bmv-prod-network:
