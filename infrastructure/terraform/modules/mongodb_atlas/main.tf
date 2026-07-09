@@ -6,17 +6,17 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {
     num_shards = 1
     regions_config {
-      active_nodes  = 3
-      priority      = 7
+      active_nodes    = 3
+      priority        = 7
       read_only_nodes = 0
-      region_name   = "US_EAST_1"
+      region_name     = "US_EAST_1"
     }
   }
 
-  provider_backup_enabled = true
-  auto_scaling_compute_enabled = true
+  provider_backup_enabled                 = true
+  auto_scaling_compute_enabled            = true
   auto_scaling_compute_scale_down_enabled = true
-  
+
   # Provider Specifications
   provider_name               = "AWS"
   provider_instance_size_name = "M10" # Shared/dedicated tier for production scaling
