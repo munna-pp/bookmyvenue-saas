@@ -1,0 +1,44 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookmyvenue.fullname" . }}-redis
+  labels:
+    {{- include "bookmyvenue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "bookmyvenue.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+      database-service: redis
+  template:
+    metadata:
+      labels:
+        {{- include "bookmyvenue.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+        database-service: redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          ports:
+            - containerPort: 6379
+              name: redis
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+{{- end }}

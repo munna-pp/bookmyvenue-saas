@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bookmyvenue.fullname" . }}-backend
+  labels:
+    {{- include "bookmyvenue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "bookmyvenue.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "bookmyvenue.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: 5000
+              name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: PORT
+              value: "5000"
+            - name: NODE_ENV
+              value: "production"
+            - name: MONGODB_URI
+              {{- if .Values.mongodb.enabled }}
+              value: "mongodb://{{ include "bookmyvenue.fullname" . }}-mongodb:27017/bookmyvenue"
+              {{- else }}
+              value: {{ .Values.backend.externalMongodbUri | quote }}
+              {{- end }}
+            - name: REDIS_URL
+              {{- if .Values.redis.enabled }}
+              value: "redis://{{ include "bookmyvenue.fullname" . }}-redis:6379"
+              {{- else }}
+              value: {{ .Values.backend.externalRedisUrl | quote }}
+              {{- end }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: JWT_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: JWT_REFRESH_SECRET
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: SMTP_PASS
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: STRIPE_SECRET_KEY
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: STRIPE_WEBHOOK_SECRET
+            - name: RAZORPAY_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: RAZORPAY_KEY_ID
+            - name: RAZORPAY_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookmyvenue.fullname" . }}-secrets
+                  key: RAZORPAY_KEY_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}

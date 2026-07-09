@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bookmyvenue.fullname" . }}-admin
+  labels:
+    {{- include "bookmyvenue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+spec:
+  ports:
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "bookmyvenue.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+  type: ClusterIP

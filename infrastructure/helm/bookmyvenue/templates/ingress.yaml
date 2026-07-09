@@ -1,0 +1,72 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "bookmyvenue.fullname" . }}-ingress
+  annotations:
+    {{- if eq .Values.global.ingress.controller "nginx" }}
+    kubernetes.io/ingress.class: nginx
+    {{- if .Values.global.ingress.ssl.enabled }}
+    cert-manager.io/issuer: {{ .Values.global.ingress.ssl.certManagerIssuer | quote }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    {{- end }}
+    {{- else if eq .Values.global.ingress.controller "aws-alb" }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    {{- if .Values.global.ingress.ssl.enabled }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    {{- else }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if eq .Values.global.ingress.controller "nginx" }}
+  ingressClassName: nginx
+  {{- else if eq .Values.global.ingress.controller "aws-alb" }}
+  ingressClassName: alb
+  {{- end }}
+  {{- if and .Values.global.ingress.ssl.enabled (eq .Values.global.ingress.controller "nginx") }}
+  tls:
+    - hosts:
+        - {{ .Values.global.domain | quote }}
+      secretName: {{ include "bookmyvenue.fullname" . }}-tls
+  {{- end }}
+  rules:
+    - host: {{ .Values.global.domain | quote }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bookmyvenue.fullname" . }}-backend
+                port:
+                  number: 5000
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bookmyvenue.fullname" . }}-backend
+                port:
+                  number: 5000
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bookmyvenue.fullname" . }}-admin
+                port:
+                  number: 3001
+          - path: /owner
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bookmyvenue.fullname" . }}-owner
+                port:
+                  number: 3002
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "bookmyvenue.fullname" . }}-web
+                port:
+                  number: 3000

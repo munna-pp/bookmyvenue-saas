@@ -1,0 +1,19 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bookmyvenue.fullname" . }}-mongodb
+  labels:
+    {{- include "bookmyvenue.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP
+      name: mongodb
+  selector:
+    {{- include "bookmyvenue.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+  type: ClusterIP
+{{- end }}
