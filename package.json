@@ -16,7 +16,7 @@
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\"",
-    "prepare": "husky install"
+    "prepare": "node -e \"try { if (require('fs').existsSync('.git')) { require('child_process').execSync('husky install', { stdio: 'inherit' }) } } catch (e) {}\""
   },
   "workspaces": [
     "apps/*",
