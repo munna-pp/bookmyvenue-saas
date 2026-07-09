@@ -1,0 +1,43 @@
+# Express backend application Dockerfile (Production Build)
+FROM node:20-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+
+# Dependencies stage: install production dependencies only
+FROM base AS dependencies
+COPY package*.json ./
+COPY packages/shared-types/package*.json ./packages/shared-types/
+COPY backend/package*.json ./backend/
+RUN npm ci --omit=dev --legacy-peer-deps
+
+# Builder stage: compile TypeScript sources
+FROM base AS builder
+COPY package*.json ./
+COPY packages/shared-types/package*.json ./packages/shared-types/
+COPY backend/package*.json ./backend/
+RUN npm ci --legacy-peer-deps
+COPY . .
+RUN npm run build --workspace=@bookmyvenue/shared-types && npm run build:backend
+
+# Runner stage: deploy the minimal runtime files
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Create non-root system group and user
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+
+# Copy runtime files
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
+COPY --from=builder /app/packages/shared-types/package.json ./packages/shared-types/package.json
+COPY --from=builder /app/backend/dist ./backend/dist
+COPY --from=builder /app/backend/package.json ./backend/package.json
+
+USER nextjs
+
+EXPOSE 5000
+ENV PORT=5000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "backend/dist/server.js"]
