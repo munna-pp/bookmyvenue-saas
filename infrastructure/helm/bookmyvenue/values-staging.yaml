@@ -1,0 +1,46 @@
+# Configuration values for staging environment
+
+global:
+  environment: staging
+  domain: staging.bookmyvenue.com
+  ingress:
+    controller: nginx
+    ssl:
+      enabled: true
+      certManagerIssuer: letsencrypt-staging
+
+mongodb:
+  enabled: true
+  persistence:
+    size: 10Gi
+
+redis:
+  enabled: true
+
+backend:
+  replicaCount: 2
+  image:
+    tag: "staging"
+    pullPolicy: Always
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+web:
+  replicaCount: 2
+  image:
+    tag: "staging"
+    pullPolicy: Always
+
+admin:
+  replicaCount: 2
+  image:
+    tag: "staging"
+    pullPolicy: Always
+
+owner:
+  replicaCount: 2
+  image:
+    tag: "staging"
+    pullPolicy: Always

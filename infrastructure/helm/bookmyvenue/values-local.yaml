@@ -1,0 +1,39 @@
+# Configuration values for local / Minikube / Docker-Desktop Kubernetes
+
+global:
+  environment: local
+  domain: localhost
+  ingress:
+    controller: nginx
+    ssl:
+      enabled: false
+
+mongodb:
+  enabled: true
+
+redis:
+  enabled: true
+
+backend:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+web:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+admin:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+owner:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent

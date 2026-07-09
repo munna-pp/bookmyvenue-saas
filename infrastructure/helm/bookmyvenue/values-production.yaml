@@ -1,0 +1,79 @@
+# Configuration values for production environment
+
+global:
+  environment: production
+  domain: bookmyvenue.com
+  ingress:
+    controller: aws-alb # options: nginx, aws-alb
+    ssl:
+      enabled: true
+      certManagerIssuer: letsencrypt-prod
+
+# Production uses MongoDB Atlas (External service)
+mongodb:
+  enabled: false
+
+# Production uses AWS ElastiCache Redis (External service)
+redis:
+  enabled: false
+
+backend:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+    pullPolicy: Always
+  # Production MongoDB Atlas placeholder URI
+  externalMongodbUri: "mongodb+srv://prod-db-user:prod-secure-password@cluster0.abcde.mongodb.net/bookmyvenue?retryWrites=true&w=majority"
+  # Production AWS ElastiCache Redis placeholder URI
+  externalRedisUrl: "redis://:prod-redis-password@prod-redis-ro.elasticache.us-east-1.amazonaws.com:6379"
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "2048Mi"
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+web:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1024Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+
+admin:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1024Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+
+owner:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1024Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"

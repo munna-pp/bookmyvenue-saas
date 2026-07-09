@@ -1,0 +1,118 @@
+# Default values for bookmyvenue Helm chart.
+
+global:
+  environment: local
+  domain: localhost
+  ingress:
+    controller: nginx # options: nginx, aws-alb
+    ssl:
+      enabled: false
+      certManagerIssuer: letsencrypt-staging
+  secrets:
+    jwtSecret: "placeholder-jwt-secret-key-must-be-long-and-secure"
+    jwtRefreshSecret: "placeholder-jwt-refresh-secret-key-must-be-long-and-secure"
+    smtpUser: "placeholder-smtp-user"
+    smtpPass: "placeholder-smtp-pass"
+    stripeSecretKey: "placeholder-stripe-secret-key"
+    stripeWebhookSecret: "placeholder-stripe-webhook-secret"
+    razorpayKeyId: "placeholder-razorpay-key-id"
+    razorpayKeySecret: "placeholder-razorpay-key-secret"
+
+# MongoDB Database (In-Cluster deployment)
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "6.0"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1024Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  persistence:
+    size: 5Gi
+
+# Redis Cache (In-Cluster deployment)
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+# Express Backend Monolith Service
+backend:
+  replicaCount: 1
+  image:
+    repository: booking-saas-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  externalMongodbUri: "" # E.g., mongodb+srv://... (used when mongodb.enabled is false)
+  externalRedisUrl: ""   # E.g., redis://... (used when redis.enabled is false)
+  resources:
+    limits:
+      cpu: "750m"
+      memory: "1024Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+
+# Next.js Client-Facing App
+web:
+  replicaCount: 1
+  image:
+    repository: booking-saas-web
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+
+# Next.js Admin Dashboard
+admin:
+  replicaCount: 1
+  image:
+    repository: booking-saas-admin
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+
+# Next.js Owner Dashboard
+owner:
+  replicaCount: 1
+  image:
+    repository: booking-saas-owner
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
