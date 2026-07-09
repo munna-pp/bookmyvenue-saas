@@ -1,0 +1,12 @@
+# Example Terraform Remote Backend configuration.
+# Copy this file to backend.tf, customize values, and run 'terraform init' to migrate state.
+
+# terraform {
+#   backend "s3" {
+#     bucket         = "bookmyvenue-tf-state-PLACEHOLDER_AWS_ACCOUNT_ID"
+#     key            = "environments/staging/terraform.tfstate" # Update prefix depending on stage (e.g. production)
+#     region         = "us-east-1"
+#     dynamodb_table = "bookmyvenue-tf-locks"
+#     encrypt        = true
+#   }
+# }
