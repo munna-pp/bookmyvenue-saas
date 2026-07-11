@@ -166,3 +166,40 @@ To run E2E integration test verification for advanced search queries, debounced 
 # Run verification script against the active local Express container
 node backend/src/config/verify_search.js
 ```
+
+---
+
+## Production CI/CD Pipeline
+
+The project includes preconfigured GitHub Actions pipelines for automated validation, compilation, and continuous integration/deployment.
+
+### 1. Continuous Integration (CI) Pipeline
+Located at [`.github/workflows/ci.yml`](file:///c:/my-work/booking-saas/.github/workflows/ci.yml).
+* **Triggers**: On pull requests and commits to branch `main`, `master`, or `dev`.
+* **Actions**:
+  * Installs dependencies using `npm ci`.
+  * Verifies code format styling using Prettier.
+  * Lints code using ESLint.
+  * Validates monorepo workspaces compilation using `npm run build`.
+  * Performs dry-run Docker image builds for backend, web, admin, and owner services to ensure Dockerfile stability.
+
+### 2. Continuous Deployment (CD) Pipeline
+Located at [`.github/workflows/cd.yml`](file:///c:/my-work/booking-saas/.github/workflows/cd.yml).
+* **Triggers**: On release tags matching `v*` (e.g., `v1.0.0` or `v1.0.0-staging`).
+* **Actions**:
+  * Resolves target environment dynamically: tags containing `-staging` or `-rc` map to **staging**; all other clean version tags map to **production**.
+  * Performs keyless authentication with AWS using **OpenID Connect (OIDC)** (IAM web identity role assumption).
+  * Logs into AWS Elastic Container Registry (ECR).
+  * Builds and tags Docker production images with Git SHA, release tag, and `latest` alias, pushing them to ECR.
+  * Automatically configures Kubernetes context (`kubectl`) and installs/upgrades the Helm release to AWS Elastic Kubernetes Service (EKS) applying the environment-specific values configurations.
+
+### 3. Required GitHub Secrets Configuration
+To enable the CD pipeline execution, add the following Repository Secrets in GitHub (`Settings > Secrets and variables > Actions`):
+
+| Secret Name | Description | Example Value |
+|-------------|-------------|---------------|
+| `AWS_ROLE_TO_ASSUME` | AWS IAM Role ARN trusted for GitHub OIDC federated login | `arn:aws:iam::123456789012:role/github-actions-cd-role` |
+| `AWS_REGION` | Target deployment AWS Region | `us-east-1` |
+| `EKS_CLUSTER_NAME` | AWS EKS Cluster name | `bmv-eks-cluster` |
+| `DOMAIN_NAME` | Public ingress routing domain endpoint | `bookmyvenue.com` |
+
