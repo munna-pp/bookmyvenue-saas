@@ -1,0 +1,136 @@
+name: BookMyVenue CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Determine Environment
+        id: env-setup
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          else
+            TAG_NAME="${{ github.ref_name }}"
+            if [[ "$TAG_NAME" == *"-staging"* || "$TAG_NAME" == *"-rc"* ]]; then
+              echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+            else
+              echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials (OIDC best-practice)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          audience: sts.amazonaws.com
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./backend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-backend:latest
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-backend:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-backend:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Web App Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-web:latest
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-web:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-web:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Admin Dashboard Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/admin/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-admin:latest
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-admin:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-admin:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Owner Dashboard Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/owner/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-owner:latest
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-owner:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/booking-saas-owner:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install kubectl CLI
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+
+      - name: Install Helm CLI
+        uses: azure/setup-helm@v4
+
+      - name: Configure EKS Context
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Deploy Helm Chart Release
+        run: |
+          helm upgrade --install bmv-release ./infrastructure/helm/bookmyvenue \
+            --namespace bookmyvenue \
+            --create-namespace \
+            -f ./infrastructure/helm/bookmyvenue/values.yaml \
+            -f ./infrastructure/helm/bookmyvenue/values-${{ env.DEPLOY_ENV }}.yaml \
+            --set backend.image.repository=${{ steps.login-ecr.outputs.registry }}/booking-saas-backend \
+            --set backend.image.tag=${{ github.ref_name }} \
+            --set web.image.repository=${{ steps.login-ecr.outputs.registry }}/booking-saas-web \
+            --set web.image.tag=${{ github.ref_name }} \
+            --set admin.image.repository=${{ steps.login-ecr.outputs.registry }}/booking-saas-admin \
+            --set admin.image.tag=${{ github.ref_name }} \
+            --set owner.image.repository=${{ steps.login-ecr.outputs.registry }}/booking-saas-owner \
+            --set owner.image.tag=${{ github.ref_name }} \
+            --set global.domain=${{ secrets.DOMAIN_NAME }}
