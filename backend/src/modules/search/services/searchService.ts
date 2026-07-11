@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types, SortOrder } from 'mongoose';
 import { Venue } from '../../venues/models/Venue.js';
 import { Booking } from '../../bookings/models/Booking.js';
 import { SearchHistory } from '../models/SearchHistory.js';
@@ -27,11 +27,8 @@ export interface SearchParams {
 /**
  * Execute advanced search matching queries on Venues
  */
-export const executeSearch = async (
-  params: SearchParams,
-  customerId?: string
-) => {
-  const query: any = {
+export const executeSearch = async (params: SearchParams, customerId?: string) => {
+  const query: Record<string, unknown> = {
     isDeleted: false,
     approvalStatus: 'APPROVED',
     publicationStatus: 'PUBLISHED',
@@ -73,13 +70,14 @@ export const executeSearch = async (
 
   // 4. Price range Filter
   if (params.minPrice !== undefined || params.maxPrice !== undefined) {
-    query['pricing.pricePerDay'] = {};
+    const priceQuery: Record<string, number> = {};
     if (params.minPrice !== undefined) {
-      query['pricing.pricePerDay'].$gte = params.minPrice;
+      priceQuery.$gte = params.minPrice;
     }
     if (params.maxPrice !== undefined) {
-      query['pricing.pricePerDay'].$lte = params.maxPrice;
+      priceQuery.$lte = params.maxPrice;
     }
+    query['pricing.pricePerDay'] = priceQuery;
   }
 
   // 5. Rating Filter
@@ -116,7 +114,7 @@ export const executeSearch = async (
   }
 
   // 9. Sorting
-  let sortOptions: any = { createdAt: -1 };
+  let sortOptions: { [key: string]: SortOrder } = { createdAt: -1 };
   if (params.sortBy === 'newest') {
     sortOptions = { createdAt: -1 };
   } else if (params.sortBy === 'price_asc' || params.sortBy === 'price low-high') {
@@ -131,14 +129,12 @@ export const executeSearch = async (
 
   const skip = (params.page - 1) * params.limit;
 
-  logger.info(`🔍 Search query: ${JSON.stringify(query)} (page: ${params.page}, limit: ${params.limit})`);
+  logger.info(
+    `🔍 Search query: ${JSON.stringify(query)} (page: ${params.page}, limit: ${params.limit})`
+  );
 
   const [venues, total] = await Promise.all([
-    Venue.find(query)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(params.limit)
-      .lean(),
+    Venue.find(query).sort(sortOptions).skip(skip).limit(params.limit).lean(),
     Venue.countDocuments(query),
   ]);
 
@@ -169,7 +165,7 @@ export const executeSearch = async (
 export const logSearchQuery = async (
   customerId?: string,
   keyword?: string,
-  filters: Record<string, any> = {},
+  filters: Record<string, unknown> = {},
   resultsCount: number = 0
 ) => {
   try {
@@ -199,7 +195,7 @@ export const executeNearbySearch = async (params: {
   const skip = (params.page - 1) * params.limit;
   const maxDistanceInMeters = params.radius * 1000;
 
-  const query: any = {
+  const query: Record<string, unknown> = {
     isDeleted: false,
     approvalStatus: 'APPROVED',
     publicationStatus: 'PUBLISHED',
@@ -214,13 +210,12 @@ export const executeNearbySearch = async (params: {
     },
   };
 
-  logger.info(`🌐 Geo Search nearby: lat=${params.lat}, lng=${params.lng}, radius=${params.radius}km`);
+  logger.info(
+    `🌐 Geo Search nearby: lat=${params.lat}, lng=${params.lng}, radius=${params.radius}km`
+  );
 
   const [venues, total] = await Promise.all([
-    Venue.find(query)
-      .skip(skip)
-      .limit(params.limit)
-      .lean(),
+    Venue.find(query).skip(skip).limit(params.limit).lean(),
     // countDocuments fails on queries with $nearSphere geolocation query operators in Mongoose; use count or find.length/separate geometry count
     // So to count documents safely for geospatial radius, we can use $geoWithin or execute find without limit/skip
     Venue.countDocuments({
@@ -317,10 +312,7 @@ export const executeRecommendations = async (customerId?: string, limit: number 
   };
 
   const getFallbackVenues = () => {
-    return Venue.find(fallbackQuery)
-      .sort({ rating: -1, reviewCount: -1 })
-      .limit(limit)
-      .lean();
+    return Venue.find(fallbackQuery).sort({ rating: -1, reviewCount: -1 }).limit(limit).lean();
   };
 
   if (!customerId) {
@@ -352,7 +344,10 @@ export const executeRecommendations = async (customerId?: string, limit: number 
 
     // 4. Combine venue IDs to exclude
     const excludeVenueIds = Array.from(
-      new Set([...wishlistedVenueIds.map(id => id.toString()), ...bookedVenueIds.map(id => id.toString())])
+      new Set([
+        ...wishlistedVenueIds.map((id) => id.toString()),
+        ...bookedVenueIds.map((id) => id.toString()),
+      ])
     ).map((id) => new Types.ObjectId(id));
 
     // 5. Query details of user booked & wishlisted venues to extract categories
@@ -366,7 +361,7 @@ export const executeRecommendations = async (customerId?: string, limit: number 
       })
         .select('venueType city')
         .lean();
-      
+
       preferredVenueTypes = interactiveVenues.map((v) => v.venueType);
       preferredCities = interactiveVenues.map((v) => v.city);
     }
@@ -374,8 +369,8 @@ export const executeRecommendations = async (customerId?: string, limit: number 
     // Include categories from search history filters
     searchHistory.forEach((hist) => {
       if (hist.filters) {
-        if (hist.filters.venueType) preferredVenueTypes.push(hist.filters.venueType);
-        if (hist.filters.city) preferredCities.push(hist.filters.city);
+        if (typeof hist.filters.venueType === 'string') preferredVenueTypes.push(hist.filters.venueType);
+        if (typeof hist.filters.city === 'string') preferredCities.push(hist.filters.city);
       }
     });
 
@@ -383,14 +378,14 @@ export const executeRecommendations = async (customerId?: string, limit: number 
     preferredCities = Array.from(new Set(preferredCities));
 
     // 6. Build recommended matching query
-    const matchQuery: any = {
+    const matchQuery: Record<string, unknown> = {
       isDeleted: false,
       approvalStatus: 'APPROVED',
       publicationStatus: 'PUBLISHED',
       _id: { $nin: excludeVenueIds }, // exclude already wishlisted or booked
     };
 
-    const criteria: any[] = [];
+    const criteria: Record<string, unknown>[] = [];
     if (preferredVenueTypes.length > 0) {
       criteria.push({ venueType: { $in: preferredVenueTypes } });
     }
@@ -405,7 +400,9 @@ export const executeRecommendations = async (customerId?: string, limit: number 
       return getFallbackVenues();
     }
 
-    logger.info(`💡 Generating recommended query for user ${customerId}: ${JSON.stringify(matchQuery)}`);
+    logger.info(
+      `💡 Generating recommended query for user ${customerId}: ${JSON.stringify(matchQuery)}`
+    );
 
     let recommended = await Venue.find(matchQuery)
       .sort({ rating: -1, reviewCount: -1 })
@@ -416,9 +413,9 @@ export const executeRecommendations = async (customerId?: string, limit: number 
     if (recommended.length < limit) {
       const remainingCount = limit - recommended.length;
       const recommendedIds = recommended.map((r) => r._id.toString());
-      const allExclude = Array.from(new Set([...excludeVenueIds.map(id => id.toString()), ...recommendedIds])).map(
-        (id) => new Types.ObjectId(id)
-      );
+      const allExclude = Array.from(
+        new Set([...excludeVenueIds.map((id) => id.toString()), ...recommendedIds])
+      ).map((id) => new Types.ObjectId(id));
 
       const fillVenues = await Venue.find({
         isDeleted: false,
@@ -444,46 +441,44 @@ export const executeRecommendations = async (customerId?: string, limit: number 
  * Compile search analytics statistics
  */
 export const executeGetSearchAnalytics = async () => {
-  const [
-    totalSearches,
-    zeroResultCount,
-    popularKeywords,
-    popularCities,
-    popularVenueTypes
-  ] = await Promise.all([
-    // 1. Total searches
-    SearchHistory.countDocuments(),
-    // 2. Zero-result count
-    SearchHistory.countDocuments({ resultsCount: 0 }),
-    // 3. Top keywords (excluding null/undefined)
-    SearchHistory.aggregate([
-      { $match: { keyword: { $ne: null } } },
-      { $group: { _id: '$keyword', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]),
-    // 4. Top cities
-    SearchHistory.aggregate([
-      { $match: { 'filters.city': { $nin: [null, ''] } } },
-      { $group: { _id: '$filters.city', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]),
-    // 5. Top venue types
-    SearchHistory.aggregate([
-      { $match: { 'filters.venueType': { $ne: null } } },
-      { $group: { _id: '$filters.venueType', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ])
-  ]);
+  const [totalSearches, zeroResultCount, popularKeywords, popularCities, popularVenueTypes] =
+    await Promise.all([
+      // 1. Total searches
+      SearchHistory.countDocuments(),
+      // 2. Zero-result count
+      SearchHistory.countDocuments({ resultsCount: 0 }),
+      // 3. Top keywords (excluding null/undefined)
+      SearchHistory.aggregate([
+        { $match: { keyword: { $ne: null } } },
+        { $group: { _id: '$keyword', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+      ]),
+      // 4. Top cities
+      SearchHistory.aggregate([
+        { $match: { 'filters.city': { $nin: [null, ''] } } },
+        { $group: { _id: '$filters.city', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+      ]),
+      // 5. Top venue types
+      SearchHistory.aggregate([
+        { $match: { 'filters.venueType': { $ne: null } } },
+        { $group: { _id: '$filters.venueType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 },
+      ]),
+    ]);
 
   return {
     totalSearches,
     zeroResultCount,
-    popularKeywords: popularKeywords.map(item => ({ keyword: item._id, count: item.count })),
-    popularCities: popularCities.map(item => ({ city: item._id, count: item.count })),
-    popularVenueTypes: popularVenueTypes.map(item => ({ venueType: item._id, count: item.count }))
+    popularKeywords: popularKeywords.map((item) => ({ keyword: item._id, count: item.count })),
+    popularCities: popularCities.map((item) => ({ city: item._id, count: item.count })),
+    popularVenueTypes: popularVenueTypes.map((item) => ({
+      venueType: item._id,
+      count: item.count,
+    })),
   };
 };
 
@@ -496,7 +491,7 @@ export const executeGetTrending = async () => {
     { $match: { keyword: { $ne: null } } },
     { $group: { _id: '$keyword', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
-    { $limit: 5 }
+    { $limit: 5 },
   ]);
 
   // Top venues
@@ -510,8 +505,8 @@ export const executeGetTrending = async () => {
     .lean();
 
   return {
-    keywords: topKeywords.map(k => k._id),
-    venues: trendingVenues
+    keywords: topKeywords.map((k) => k._id),
+    venues: trendingVenues,
   };
 };
 
@@ -523,7 +518,7 @@ export const executeGetFeatured = async () => {
     isDeleted: false,
     approvalStatus: 'APPROVED',
     publicationStatus: 'PUBLISHED',
-    rating: { $gte: 4.5 }
+    rating: { $gte: 4.5 },
   })
     .sort({ reviewCount: -1 })
     .limit(6)

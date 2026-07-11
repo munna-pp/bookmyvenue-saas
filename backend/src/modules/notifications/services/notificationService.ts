@@ -4,10 +4,11 @@ import * as emailService from './emailService.js';
 import { authEvents, venueEvents } from '../../../utils/events.js';
 import { bookingEvents } from '../../bookings/services/bookingService.js';
 import { paymentEvents } from '../../payments/services/paymentService.js';
-import { User } from '../../auth/models/User.js';
-import { Venue } from '../../venues/models/Venue.js';
-import { Booking } from '../../bookings/models/Booking.js';
+import { User, IUser } from '../../auth/models/User.js';
+import { Venue, IVenue } from '../../venues/models/Venue.js';
+import { Booking, IBooking } from '../../bookings/models/Booking.js';
 import { Invoice } from '../../payments/models/Invoice.js';
+import { IPayment } from '../../payments/models/Payment.js';
 import { logger } from '../../../utils/logger.js';
 
 interface CreateNotificationParams {
@@ -21,10 +22,14 @@ interface CreateNotificationParams {
  * Centralized function to create an in-app notification,
  * persist to MongoDB, and dispatch over Socket.IO.
  */
-export const createNotification = async (params: CreateNotificationParams): Promise<INotification | null> => {
+export const createNotification = async (
+  params: CreateNotificationParams
+): Promise<INotification | null> => {
   try {
-    logger.info(`🔔 Creating notification: [${params.type}] for user ${params.userId} - "${params.title}"`);
-    
+    logger.info(
+      `🔔 Creating notification: [${params.type}] for user ${params.userId} - "${params.title}"`
+    );
+
     // Save to Database
     const notification = await Notification.create({
       userId: params.userId,
@@ -60,11 +65,11 @@ export const initializeNotificationListeners = (): void => {
   // ==========================================
   // 1. AUTHENTICATION / USER ACTIONS EVENTS
   // ==========================================
-  authEvents.on('USER_REGISTERED', async (user: any) => {
+  authEvents.on('USER_REGISTERED', async (user: IUser) => {
     logger.info(`🔔 Event [USER_REGISTERED]: Processing notification/email for ${user.email}`);
     try {
       await emailService.sendWelcomeEmail(user.email, user.name);
-      
+
       if (user.verificationToken) {
         await emailService.sendVerificationEmail(user.email, user.name, user.verificationToken);
       }
@@ -73,7 +78,7 @@ export const initializeNotificationListeners = (): void => {
     }
   });
 
-  authEvents.on('VERIFICATION_EMAIL_REQUESTED', async (user: any) => {
+  authEvents.on('VERIFICATION_EMAIL_REQUESTED', async (user: IUser) => {
     logger.info(`🔔 Event [VERIFICATION_EMAIL_REQUESTED]: Sending code to ${user.email}`);
     try {
       if (user.verificationToken) {
@@ -84,7 +89,7 @@ export const initializeNotificationListeners = (): void => {
     }
   });
 
-  authEvents.on('PASSWORD_RESET_REQUESTED', async (user: any) => {
+  authEvents.on('PASSWORD_RESET_REQUESTED', async (user: IUser) => {
     logger.info(`🔔 Event [PASSWORD_RESET_REQUESTED]: Sending reset token to ${user.email}`);
     try {
       if (user.passwordResetToken) {
@@ -98,7 +103,7 @@ export const initializeNotificationListeners = (): void => {
   // ==========================================
   // 2. VENUE ACTIONS EVENTS
   // ==========================================
-  venueEvents.on('VENUE_APPROVED', async ({ venue, owner }: any) => {
+  venueEvents.on('VENUE_APPROVED', async ({ venue, owner }: { venue: IVenue; owner: IUser }) => {
     logger.info(`🔔 Event [VENUE_APPROVED]: Processing alert for venue "${venue.title}"`);
     try {
       await createNotification({
@@ -113,7 +118,7 @@ export const initializeNotificationListeners = (): void => {
     }
   });
 
-  venueEvents.on('VENUE_REJECTED', async ({ venue, owner, reason }: any) => {
+  venueEvents.on('VENUE_REJECTED', async ({ venue, owner, reason }: { venue: IVenue; owner: IUser; reason?: string }) => {
     logger.info(`🔔 Event [VENUE_REJECTED]: Processing alert for venue "${venue.title}"`);
     try {
       await createNotification({
@@ -131,15 +136,19 @@ export const initializeNotificationListeners = (): void => {
   // ==========================================
   // 3. BOOKING ENGINE EVENTS
   // ==========================================
-  bookingEvents.on('BOOKING_CREATED', async (booking: any) => {
-    logger.info(`🔔 Event [BOOKING_CREATED]: Dispatching notification triggers for booking #${booking.bookingNumber}`);
+  bookingEvents.on('BOOKING_CREATED', async (booking: IBooking) => {
+    logger.info(
+      `🔔 Event [BOOKING_CREATED]: Dispatching notification triggers for booking #${booking.bookingNumber}`
+    );
     try {
       const customer = await User.findById(booking.customerId);
       const owner = await User.findById(booking.ownerId);
       const venue = await Venue.findById(booking.venueId);
 
       if (!customer || !owner || !venue) {
-        logger.error(`❌ Event [BOOKING_CREATED]: Missing Customer/Owner/Venue for booking #${booking.bookingNumber}`);
+        logger.error(
+          `❌ Event [BOOKING_CREATED]: Missing Customer/Owner/Venue for booking #${booking.bookingNumber}`
+        );
         return;
       }
 
@@ -150,7 +159,13 @@ export const initializeNotificationListeners = (): void => {
         message: `You have received a new booking query #${booking.bookingNumber} for "${venue.title}" on event date ${new Date(booking.eventDate).toLocaleDateString()}.`,
         type: 'BOOKING_ALERT',
       });
-      await emailService.sendBookingRequestEmail(owner.email, owner.name, booking.bookingNumber, venue.title, booking.eventDate);
+      await emailService.sendBookingRequestEmail(
+        owner.email,
+        owner.name,
+        booking.bookingNumber,
+        venue.title,
+        booking.eventDate
+      );
 
       // Send Confirmation to Customer
       await createNotification({
@@ -164,14 +179,16 @@ export const initializeNotificationListeners = (): void => {
     }
   });
 
-  bookingEvents.on('BOOKING_APPROVED', async (booking: any) => {
+  bookingEvents.on('BOOKING_APPROVED', async (booking: IBooking) => {
     logger.info(`🔔 Event [BOOKING_APPROVED]: Dispatching alerts for #${booking.bookingNumber}`);
     try {
       const customer = await User.findById(booking.customerId);
       const venue = await Venue.findById(booking.venueId);
 
       if (!customer || !venue) {
-        logger.error(`❌ Event [BOOKING_APPROVED]: Missing Customer/Venue for booking #${booking.bookingNumber}`);
+        logger.error(
+          `❌ Event [BOOKING_APPROVED]: Missing Customer/Venue for booking #${booking.bookingNumber}`
+        );
         return;
       }
 
@@ -181,20 +198,28 @@ export const initializeNotificationListeners = (): void => {
         message: `Your booking query #${booking.bookingNumber} for "${venue.title}" has been approved by the host. Please complete the payment to secure your slot.`,
         type: 'BOOKING_ALERT',
       });
-      await emailService.sendBookingApprovedEmail(customer.email, customer.name, booking.bookingNumber, venue.title, booking.eventDate);
+      await emailService.sendBookingApprovedEmail(
+        customer.email,
+        customer.name,
+        booking.bookingNumber,
+        venue.title,
+        booking.eventDate
+      );
     } catch (err) {
       logger.error('❌ Error handling BOOKING_APPROVED event:', err);
     }
   });
 
-  bookingEvents.on('BOOKING_REJECTED', async (booking: any) => {
+  bookingEvents.on('BOOKING_REJECTED', async (booking: IBooking) => {
     logger.info(`🔔 Event [BOOKING_REJECTED]: Dispatching alerts for #${booking.bookingNumber}`);
     try {
       const customer = await User.findById(booking.customerId);
       const venue = await Venue.findById(booking.venueId);
 
       if (!customer || !venue) {
-        logger.error(`❌ Event [BOOKING_REJECTED]: Missing Customer/Venue for booking #${booking.bookingNumber}`);
+        logger.error(
+          `❌ Event [BOOKING_REJECTED]: Missing Customer/Venue for booking #${booking.bookingNumber}`
+        );
         return;
       }
 
@@ -204,13 +229,20 @@ export const initializeNotificationListeners = (): void => {
         message: `Your booking query #${booking.bookingNumber} for "${venue.title}" was declined by the host. Reason: ${booking.cancellationReason || 'N/A'}.`,
         type: 'BOOKING_ALERT',
       });
-      await emailService.sendBookingRejectedEmail(customer.email, customer.name, booking.bookingNumber, venue.title, booking.eventDate, booking.cancellationReason);
+      await emailService.sendBookingRejectedEmail(
+        customer.email,
+        customer.name,
+        booking.bookingNumber,
+        venue.title,
+        booking.eventDate,
+        booking.cancellationReason
+      );
     } catch (err) {
       logger.error('❌ Error handling BOOKING_REJECTED event:', err);
     }
   });
 
-  bookingEvents.on('BOOKING_CANCELLED', async (booking: any) => {
+  bookingEvents.on('BOOKING_CANCELLED', async (booking: IBooking) => {
     logger.info(`🔔 Event [BOOKING_CANCELLED]: Dispatching alerts for #${booking.bookingNumber}`);
     try {
       const customer = await User.findById(booking.customerId);
@@ -218,11 +250,13 @@ export const initializeNotificationListeners = (): void => {
       const venue = await Venue.findById(booking.venueId);
 
       if (!customer || !owner || !venue) {
-        logger.error(`❌ Event [BOOKING_CANCELLED]: Missing Customer/Owner/Venue for booking #${booking.bookingNumber}`);
+        logger.error(
+          `❌ Event [BOOKING_CANCELLED]: Missing Customer/Owner/Venue for booking #${booking.bookingNumber}`
+        );
         return;
       }
 
-      const isCustomer = booking.cancelledBy === 'customer';
+      const isCustomer = booking.cancelledBy?.toString() === customer._id.toString();
       const recipient = isCustomer ? owner : customer;
       const recipientName = isCustomer ? owner.name : customer.name;
       const recipientEmail = isCustomer ? owner.email : customer.email;
@@ -250,14 +284,18 @@ export const initializeNotificationListeners = (): void => {
   // ==========================================
   // 4. PAYMENTS ENGINE EVENTS
   // ==========================================
-  paymentEvents.on('PAYMENT_SUCCESS', async (payment: any) => {
-    logger.info(`🔔 Event [PAYMENT_SUCCESS]: Dispatching alerts for transaction: ${payment.providerPaymentId}`);
+  paymentEvents.on('PAYMENT_SUCCESS', async (payment: IPayment) => {
+    logger.info(
+      `🔔 Event [PAYMENT_SUCCESS]: Dispatching alerts for transaction: ${payment.providerPaymentId}`
+    );
     try {
       const customer = await User.findById(payment.customerId);
       const booking = await Booking.findById(payment.bookingId);
 
       if (!customer || !booking) {
-        logger.error(`❌ Event [PAYMENT_SUCCESS]: Missing Customer/Booking for payment: ${payment._id}`);
+        logger.error(
+          `❌ Event [PAYMENT_SUCCESS]: Missing Customer/Booking for payment: ${payment._id}`
+        );
         return;
       }
 
@@ -272,7 +310,13 @@ export const initializeNotificationListeners = (): void => {
         message: `Your payment of ₹${payment.amount} for booking #${booking.bookingNumber} was verified successfully. Your booking is now CONFIRMED.`,
         type: 'PAYMENT_ALERT',
       });
-      await emailService.sendPaymentSuccessfulEmail(customer.email, customer.name, booking.bookingNumber, payment.amount, invoiceNumber);
+      await emailService.sendPaymentSuccessfulEmail(
+        customer.email,
+        customer.name,
+        booking.bookingNumber,
+        payment.amount,
+        invoiceNumber
+      );
 
       // Notify Host (Owner gets wallet credit alert)
       await createNotification({
@@ -286,14 +330,18 @@ export const initializeNotificationListeners = (): void => {
     }
   });
 
-  paymentEvents.on('PAYMENT_REFUNDED', async (payment: any) => {
-    logger.info(`🔔 Event [PAYMENT_REFUNDED]: Dispatching alerts for payment: ${payment.providerPaymentId}`);
+  paymentEvents.on('PAYMENT_REFUNDED', async (payment: IPayment) => {
+    logger.info(
+      `🔔 Event [PAYMENT_REFUNDED]: Dispatching alerts for payment: ${payment.providerPaymentId}`
+    );
     try {
       const customer = await User.findById(payment.customerId);
       const booking = await Booking.findById(payment.bookingId);
 
       if (!customer || !booking) {
-        logger.error(`❌ Event [PAYMENT_REFUNDED]: Missing Customer/Booking for payment: ${payment._id}`);
+        logger.error(
+          `❌ Event [PAYMENT_REFUNDED]: Missing Customer/Booking for payment: ${payment._id}`
+        );
         return;
       }
 
@@ -304,7 +352,12 @@ export const initializeNotificationListeners = (): void => {
         message: `A refund of ₹${payment.amount} has been successfully processed for booking #${booking.bookingNumber}.`,
         type: 'PAYMENT_ALERT',
       });
-      await emailService.sendRefundProcessedEmail(customer.email, customer.name, booking.bookingNumber, payment.amount);
+      await emailService.sendRefundProcessedEmail(
+        customer.email,
+        customer.name,
+        booking.bookingNumber,
+        payment.amount
+      );
 
       // Notify Owner
       await createNotification({

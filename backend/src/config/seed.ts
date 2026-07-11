@@ -61,8 +61,11 @@ export const seedAdmin = async (): Promise<void> => {
     }
 
     // 4. Seed Venues
-    let grandPalace = await Venue.findOne({ title: 'Grand Palace Ballroom & Gardens', isDeleted: false });
-    
+    let grandPalace = await Venue.findOne({
+      title: 'Grand Palace Ballroom & Gardens',
+      isDeleted: false,
+    });
+
     const venuesCount = await Venue.countDocuments({ isDeleted: false });
     if (venuesCount === 0) {
       logger.info('🏛️ No venues detected. Seeding sample venue data...');
@@ -71,7 +74,8 @@ export const seedAdmin = async (): Promise<void> => {
         {
           ownerId: owner._id,
           title: 'Grand Palace Ballroom & Gardens',
-          description: 'A luxurious and expansive ballroom perfect for weddings, banquets, and grand receptions. Features elegant crystal chandeliers, professional sound systems, and a beautiful outdoor lawn.',
+          description:
+            'A luxurious and expansive ballroom perfect for weddings, banquets, and grand receptions. Features elegant crystal chandeliers, professional sound systems, and a beautiful outdoor lawn.',
           venueType: 'wedding_hall',
           category: 'Luxury Wedding Spaces',
           address: {
@@ -95,13 +99,26 @@ export const seedAdmin = async (): Promise<void> => {
             securityDeposit: 50000,
             cleaningFee: 10000,
           },
-          amenities: ['Air Conditioning', 'Valet Parking', 'Catering Kitchen', 'AV Equipment', 'WiFi', 'Bridal Suite', 'Outdoor Lawn'],
-          policies: ['No loud music after 10 PM', 'External caterers allowed', '100% refund up to 30 days before event'],
+          amenities: [
+            'Air Conditioning',
+            'Valet Parking',
+            'Catering Kitchen',
+            'AV Equipment',
+            'WiFi',
+            'Bridal Suite',
+            'Outdoor Lawn',
+          ],
+          policies: [
+            'No loud music after 10 PM',
+            'External caterers allowed',
+            '100% refund up to 30 days before event',
+          ],
           images: [
             'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
             'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
           ],
-          featuredImage: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
+          featuredImage:
+            'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
           approvalStatus: 'APPROVED',
           publicationStatus: 'PUBLISHED',
           rating: 4.9,
@@ -110,7 +127,8 @@ export const seedAdmin = async (): Promise<void> => {
         {
           ownerId: owner._id,
           title: 'Skyline Executive Hub & Suites',
-          description: 'A modern, high-tech meeting room and corporate event space in the heart of Bangalore. Ideal for board meetings, seminars, and networking events.',
+          description:
+            'A modern, high-tech meeting room and corporate event space in the heart of Bangalore. Ideal for board meetings, seminars, and networking events.',
           venueType: 'meeting_room',
           category: 'Corporate Meeting Spaces',
           address: {
@@ -133,13 +151,25 @@ export const seedAdmin = async (): Promise<void> => {
             pricePerHour: 3500,
             securityDeposit: 10000,
           },
-          amenities: ['WiFi', 'Projector', 'Whiteboard', 'Air Conditioning', 'Video Conferencing', 'Coffee Machine'],
-          policies: ['Corporate events only', 'No smoking', 'Cancellations allowed up to 7 days before event'],
+          amenities: [
+            'WiFi',
+            'Projector',
+            'Whiteboard',
+            'Air Conditioning',
+            'Video Conferencing',
+            'Coffee Machine',
+          ],
+          policies: [
+            'Corporate events only',
+            'No smoking',
+            'Cancellations allowed up to 7 days before event',
+          ],
           images: [
             'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
             'https://images.unsplash.com/photo-1517502884422-41eaaced0168?auto=format&fit=crop&w=1200&q=80',
           ],
-          featuredImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+          featuredImage:
+            'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
           approvalStatus: 'APPROVED',
           publicationStatus: 'PUBLISHED',
           rating: 4.7,
@@ -148,7 +178,8 @@ export const seedAdmin = async (): Promise<void> => {
         {
           ownerId: owner._id,
           title: 'Whispering Palms Beach Resort',
-          description: 'Stunning beachfront resort space in Goa. Features beautiful pool decks, open lawns, and coconut groves, making it a dream venue for destination weddings and beach parties.',
+          description:
+            'Stunning beachfront resort space in Goa. Features beautiful pool decks, open lawns, and coconut groves, making it a dream venue for destination weddings and beach parties.',
           venueType: 'resort',
           category: 'Outdoor Beach Venues',
           address: {
@@ -172,13 +203,26 @@ export const seedAdmin = async (): Promise<void> => {
             securityDeposit: 40000,
             cleaningFee: 8000,
           },
-          amenities: ['Outdoor Lawn', 'Swimming Pool', 'Beach Access', 'Catering Kitchen', 'WiFi', 'Parking', 'Bar Setup'],
-          policies: ['Event ends by midnight', 'No fireworks', '50% refund up to 14 days before event'],
+          amenities: [
+            'Outdoor Lawn',
+            'Swimming Pool',
+            'Beach Access',
+            'Catering Kitchen',
+            'WiFi',
+            'Parking',
+            'Bar Setup',
+          ],
+          policies: [
+            'Event ends by midnight',
+            'No fireworks',
+            '50% refund up to 14 days before event',
+          ],
           images: [
             'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80',
             'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
           ],
-          featuredImage: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80',
+          featuredImage:
+            'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80',
           approvalStatus: 'APPROVED',
           publicationStatus: 'PUBLISHED',
           rating: 4.85,
@@ -197,7 +241,7 @@ export const seedAdmin = async (): Promise<void> => {
     const bookingsCount = await Booking.countDocuments();
     if (bookingsCount === 0 && grandPalace) {
       logger.info('📅 No bookings detected. Seeding sample booking request...');
-      
+
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 15);
       futureDate.setUTCHours(0, 0, 0, 0);

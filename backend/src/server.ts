@@ -30,9 +30,9 @@ const startServer = async () => {
     initializeSocket(server);
 
     // Initialize event listeners for Notifications module
-    const { initializeNotificationListeners } = await import('./modules/notifications/services/notificationService.js');
+    const { initializeNotificationListeners } =
+      await import('./modules/notifications/services/notificationService.js');
     initializeNotificationListeners();
-
   } catch (error) {
     logger.error('❌ Failed to start the server:', error);
     process.exit(1);

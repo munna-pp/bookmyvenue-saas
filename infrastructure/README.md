@@ -6,17 +6,18 @@ This directory contains the configurations and deployment specifications to comp
 
 ## Directory Structure
 
-* **`docker/`**: Standalone production Dockerfile specifications.
-* **`kubernetes/`**: Plain Kubernetes YAML files for manual deployments.
-* **`helm/bookmyvenue/`**: Reusable Helm chart templates supporting environments configuration overrides.
-* **`nginx/`**: Nginx proxy pass routing logic configurations.
-* **`terraform/`**: Infrastructure as Code configs (detailed in Phase 9.3).
+- **`docker/`**: Standalone production Dockerfile specifications.
+- **`kubernetes/`**: Plain Kubernetes YAML files for manual deployments.
+- **`helm/bookmyvenue/`**: Reusable Helm chart templates supporting environments configuration overrides.
+- **`nginx/`**: Nginx proxy pass routing logic configurations.
+- **`terraform/`**: Infrastructure as Code configs (detailed in Phase 9.3).
 
 ---
 
 ## 1. Local Deployment Verification
 
 To run and verify the production build state locally using Docker Compose, execute:
+
 ```bash
 # Build standalone images
 docker compose -f docker-compose.prod.yml build
@@ -36,12 +37,14 @@ docker compose -f docker-compose.prod.yml down
 ## 2. Minikube Deployment Guide
 
 Ensure `minikube` is running and the ingress addon is enabled:
+
 ```bash
 minikube start --driver=docker
 minikube addons enable ingress
 ```
 
 ### Steps:
+
 1. **Point Local Shell to Minikube Docker Daemon**:
    This allows you to build images directly inside the Minikube registry without pushing to external hubs:
    ```bash
@@ -71,11 +74,13 @@ minikube addons enable ingress
 ## 3. Docker Desktop Kubernetes Guide
 
 Enable Kubernetes in Docker Desktop settings and switch your cluster context:
+
 ```bash
 kubectl config use-context docker-desktop
 ```
 
 ### Steps:
+
 1. **Install NGINX Ingress Controller**:
    ```bash
    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
@@ -94,6 +99,7 @@ kubectl config use-context docker-desktop
 ## 4. AWS EKS Deployment Overview
 
 To deploy to production AWS EKS (with MongoDB Atlas and AWS ElastiCache):
+
 1. **Infrastructure Provisioning**:
    Apply Terraform scripts (Phase 9.3) to establish VPC networks, EKS control plane, and DB peering.
 2. **Configure Helm for Production**:

@@ -14,7 +14,7 @@ export default function NotificationBell() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchUnreadCount = async () => {
@@ -161,7 +161,9 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 bg-surface border border-border-custom rounded-2xl shadow-lg z-50 overflow-hidden py-1">
           <div className="px-4 py-3 border-b border-border-custom/50 flex justify-between items-center bg-slate-50/50">
-            <span className="text-xs font-black text-primary-text uppercase tracking-wide">Owner Alerts</span>
+            <span className="text-xs font-black text-primary-text uppercase tracking-wide">
+              Owner Alerts
+            </span>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
@@ -178,9 +180,7 @@ export default function NotificationBell() {
                 <Loader2 size={18} className="animate-spin text-primary" />
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-text">
-                No recent alerts.
-              </div>
+              <div className="p-6 text-center text-xs text-muted-text">No recent alerts.</div>
             ) : (
               notifications.map((notif) => {
                 const id = notif._id || notif.id;
@@ -198,11 +198,18 @@ export default function NotificationBell() {
                             !notif.read ? 'bg-primary' : 'bg-transparent'
                           }`}
                         />
-                        <h4 className="text-xs font-bold text-primary-text truncate">{notif.title}</h4>
+                        <h4 className="text-xs font-bold text-primary-text truncate">
+                          {notif.title}
+                        </h4>
                       </div>
-                      <p className="text-[10px] text-body-text mt-1 leading-relaxed break-words">{notif.message}</p>
+                      <p className="text-[10px] text-body-text mt-1 leading-relaxed break-words">
+                        {notif.message}
+                      </p>
                       <span className="text-[8px] text-muted-text block mt-1.5">
-                        {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(notif.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </span>
                     </div>
 

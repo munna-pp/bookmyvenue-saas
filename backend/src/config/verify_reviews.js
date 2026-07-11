@@ -52,40 +52,53 @@ async function runReviewTests() {
   try {
     const mongoose = require('mongoose');
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    
+
     // Clear existing reviews first
-    const connReviews = await mongoose.createConnection(`${mongoUri}/bookmyvenue_reviews`).asPromise();
+    const connReviews = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_reviews`)
+      .asPromise();
     await connReviews.collection('reviews').deleteMany({});
     await connReviews.close();
 
     // Clear existing wishlist entries
-    const connWishlist = await mongoose.createConnection(`${mongoUri}/bookmyvenue_wishlist`).asPromise();
+    const connWishlist = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_wishlist`)
+      .asPromise();
     await connWishlist.collection('wishlists').deleteMany({});
     await connWishlist.close();
 
     // Force a booking to completed state
-    const connBook = await mongoose.createConnection(`${mongoUri}/bookmyvenue_bookings`).asPromise();
-    const booking = await connBook.collection('bookings').findOne({ customerId: new mongoose.Types.ObjectId(customerId) });
+    const connBook = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_bookings`)
+      .asPromise();
+    const booking = await connBook
+      .collection('bookings')
+      .findOne({ customerId: new mongoose.Types.ObjectId(customerId) });
     if (!booking) throw new Error('No reference booking found in database.');
-    
+
     bookingId = booking._id.toString();
     venueId = booking.venueId.toString();
 
-    await connBook.collection('bookings').updateOne(
-      { _id: booking._id },
-      { $set: { bookingStatus: 'COMPLETED' } }
-    );
+    await connBook
+      .collection('bookings')
+      .updateOne({ _id: booking._id }, { $set: { bookingStatus: 'COMPLETED' } });
     await connBook.close();
 
     // Reset venue rating to start fresh
-    const connVenues = await mongoose.createConnection(`${mongoUri}/bookmyvenue_venues`).asPromise();
-    await connVenues.collection('venues').updateOne(
-      { _id: new mongoose.Types.ObjectId(venueId) },
-      { $set: { rating: 0, reviewCount: 0 } }
-    );
+    const connVenues = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_venues`)
+      .asPromise();
+    await connVenues
+      .collection('venues')
+      .updateOne(
+        { _id: new mongoose.Types.ObjectId(venueId) },
+        { $set: { rating: 0, reviewCount: 0 } }
+      );
     await connVenues.close();
 
-    console.log(`✅ Customer completed booking prepared: Booking ID #${bookingId} for Venue ID #${venueId}`);
+    console.log(
+      `✅ Customer completed booking prepared: Booking ID #${bookingId} for Venue ID #${venueId}`
+    );
   } catch (err) {
     console.error('❌ Database setup phase failed:', err.message);
     process.exit(1);
@@ -98,13 +111,14 @@ async function runReviewTests() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
       },
       body: JSON.stringify({
         bookingId,
         rating: 5,
         title: 'Outstanding event space!',
-        review: 'The facilities were spotless, staff was exceptionally helpful, and coordinates were correct.',
+        review:
+          'The facilities were spotless, staff was exceptionally helpful, and coordinates were correct.',
         images: ['https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800'],
       }),
     });
@@ -122,7 +136,7 @@ async function runReviewTests() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
       },
       body: JSON.stringify({
         bookingId,
@@ -149,7 +163,7 @@ async function runReviewTests() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ownerToken}`,
+        Authorization: `Bearer ${ownerToken}`,
       },
       body: JSON.stringify({
         reply: 'Thank you for your fantastic feedback! We are thrilled that you enjoyed the event.',
@@ -172,8 +186,12 @@ async function runReviewTests() {
     console.log('\n--- Testing Venue Ratings Recalculation ---');
     const mongoose = require('mongoose');
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    const connVenues = await mongoose.createConnection(`${mongoUri}/bookmyvenue_venues`).asPromise();
-    const venue = await connVenues.collection('venues').findOne({ _id: new mongoose.Types.ObjectId(venueId) });
+    const connVenues = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_venues`)
+      .asPromise();
+    const venue = await connVenues
+      .collection('venues')
+      .findOne({ _id: new mongoose.Types.ObjectId(venueId) });
     await connVenues.close();
 
     console.log(`Venue stats: Rating=${venue.rating}, ReviewCount=${venue.reviewCount}`);
@@ -190,11 +208,11 @@ async function runReviewTests() {
   // 7. WISHLIST ADD, LIST, AND REMOVE
   try {
     console.log('\n--- Testing Wishlist Module ---');
-    
+
     // Add to wishlist
     const resAdd = await fetch(`${baseUrl}/api/v1/wishlist/${venueId}`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     if (resAdd.status === 201) {
       console.log('✅ Venue added to customer wishlist successfully.');
@@ -205,7 +223,7 @@ async function runReviewTests() {
     // Try adding duplicate to wishlist
     const resAddDup = await fetch(`${baseUrl}/api/v1/wishlist/${venueId}`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     if (resAddDup.status === 201) {
       console.log('✅ Duplicate wishlist entry prevented (ignored/handled by upsert).');
@@ -215,11 +233,13 @@ async function runReviewTests() {
 
     // List and sort wishlist
     const resList = await fetch(`${baseUrl}/api/v1/wishlist?sortBy=newest`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     const listJson = await resList.json();
     if (resList.status === 200 && listJson.data.wishlist.length === 1) {
-      console.log(`✅ Wishlist list fetched successfully containing ${listJson.data.wishlist.length} item.`);
+      console.log(
+        `✅ Wishlist list fetched successfully containing ${listJson.data.wishlist.length} item.`
+      );
       console.log(`✅ Verified saved date is present: ${listJson.data.wishlist[0].createdAt}`);
     } else {
       throw new Error('Wishlist list verification failed');
@@ -228,7 +248,7 @@ async function runReviewTests() {
     // Delete from wishlist
     const resDel = await fetch(`${baseUrl}/api/v1/wishlist/${venueId}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     if (resDel.status === 200) {
       console.log('✅ Venue removed from customer wishlist successfully.');
@@ -247,7 +267,7 @@ async function runReviewTests() {
     // Admin hides review
     const resHide = await fetch(`${baseUrl}/api/v1/reviews/${reviewId}/hide`, {
       method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
     if (resHide.status === 200) {
       console.log('✅ Admin successfully hid the review.');
@@ -258,8 +278,12 @@ async function runReviewTests() {
     // Verify rating recalculation (should be 0 since the review is hidden)
     const mongoose = require('mongoose');
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    const connVenues = await mongoose.createConnection(`${mongoUri}/bookmyvenue_venues`).asPromise();
-    let venue = await connVenues.collection('venues').findOne({ _id: new mongoose.Types.ObjectId(venueId) });
+    const connVenues = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_venues`)
+      .asPromise();
+    let venue = await connVenues
+      .collection('venues')
+      .findOne({ _id: new mongoose.Types.ObjectId(venueId) });
     if (venue.rating === 0 && venue.reviewCount === 0) {
       console.log('✅ Rating updated correctly after review hidden (rating reset to 0).');
     } else {
@@ -269,7 +293,7 @@ async function runReviewTests() {
     // Admin restores review
     const resRestore = await fetch(`${baseUrl}/api/v1/reviews/${reviewId}/restore`, {
       method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
     if (resRestore.status === 200) {
       console.log('✅ Admin successfully restored the review.');
@@ -278,7 +302,9 @@ async function runReviewTests() {
     }
 
     // Verify rating recalculation (should be 5 again since review is restored)
-    venue = await connVenues.collection('venues').findOne({ _id: new mongoose.Types.ObjectId(venueId) });
+    venue = await connVenues
+      .collection('venues')
+      .findOne({ _id: new mongoose.Types.ObjectId(venueId) });
     if (venue.rating === 5 && venue.reviewCount === 1) {
       console.log('✅ Rating updated correctly after review restored (rating is 5).');
     } else {
@@ -289,7 +315,7 @@ async function runReviewTests() {
     // Admin permanently purges review
     const resPurge = await fetch(`${baseUrl}/api/v1/admin/reviews/${reviewId}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
     if (resPurge.status === 200) {
       console.log('✅ Admin permanently purged the review from database.');
@@ -298,15 +324,18 @@ async function runReviewTests() {
     }
 
     // Final rating recalculation verify (should be 0 since review is gone)
-    const connVenuesFinal = await mongoose.createConnection(`${mongoUri}/bookmyvenue_venues`).asPromise();
-    venue = await connVenuesFinal.collection('venues').findOne({ _id: new mongoose.Types.ObjectId(venueId) });
+    const connVenuesFinal = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_venues`)
+      .asPromise();
+    venue = await connVenuesFinal
+      .collection('venues')
+      .findOne({ _id: new mongoose.Types.ObjectId(venueId) });
     await connVenuesFinal.close();
     if (venue.rating === 0 && venue.reviewCount === 0) {
       console.log('✅ Rating verified after purge (reset to 0).');
     } else {
       throw new Error('Purged review rating recalculation mismatch!');
     }
-
   } catch (err) {
     console.error('❌ Admin moderation phase failed:', err.message);
     process.exit(1);

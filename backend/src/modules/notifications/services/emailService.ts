@@ -161,7 +161,11 @@ export const sendWelcomeEmail = async (to: string, name: string): Promise<void> 
 };
 
 // 2. Email Verification
-export const sendVerificationEmail = async (to: string, name: string, token: string): Promise<void> => {
+export const sendVerificationEmail = async (
+  to: string,
+  name: string,
+  token: string
+): Promise<void> => {
   const title = 'Verify Your Email Address';
   const url = `${config.NODE_ENV === 'production' ? '' : 'http://localhost:5000'}/api/v1/auth/verify-email?token=${token}`;
   const html = wrapHtmlTemplate(
@@ -177,7 +181,11 @@ export const sendVerificationEmail = async (to: string, name: string, token: str
 };
 
 // 3. Forgot Password Email
-export const sendForgotPasswordEmail = async (to: string, name: string, token: string): Promise<void> => {
+export const sendForgotPasswordEmail = async (
+  to: string,
+  name: string,
+  token: string
+): Promise<void> => {
   const title = 'Reset Your Password';
   const url = `${config.NODE_ENV === 'production' ? '' : 'http://localhost:3000'}/reset-password?token=${token}`;
   const html = wrapHtmlTemplate(
@@ -305,7 +313,12 @@ export const sendPaymentSuccessfulEmail = async (
      <a href="http://localhost:3000/bookings" class="btn">View My Bookings</a>`
   );
   const text = `Hi ${customerName},\n\nYour payment of ₹${amount} for booking #${bookingNumber} has been verified successfully (Invoice: ${invoiceNumber}).`;
-  await sendMail({ to, subject: `[BookMyVenue] Payment Successful - #${bookingNumber}`, html, text });
+  await sendMail({
+    to,
+    subject: `[BookMyVenue] Payment Successful - #${bookingNumber}`,
+    html,
+    text,
+  });
 };
 
 // 9. Refund Processed
@@ -327,7 +340,11 @@ export const sendRefundProcessedEmail = async (
 };
 
 // 10. Venue Approved by Admin
-export const sendVenueApprovedEmail = async (to: string, ownerName: string, venueTitle: string): Promise<void> => {
+export const sendVenueApprovedEmail = async (
+  to: string,
+  ownerName: string,
+  venueTitle: string
+): Promise<void> => {
   const title = 'Your Venue Has Been Approved!';
   const html = wrapHtmlTemplate(
     title,
@@ -341,7 +358,12 @@ export const sendVenueApprovedEmail = async (to: string, ownerName: string, venu
 };
 
 // 11. Venue Rejected by Admin
-export const sendVenueRejectedEmail = async (to: string, ownerName: string, venueTitle: string, reason?: string): Promise<void> => {
+export const sendVenueRejectedEmail = async (
+  to: string,
+  ownerName: string,
+  venueTitle: string,
+  reason?: string
+): Promise<void> => {
   const title = 'Venue Listing Request Declined';
   const html = wrapHtmlTemplate(
     title,
@@ -352,5 +374,10 @@ export const sendVenueRejectedEmail = async (to: string, ownerName: string, venu
      <a href="http://localhost:3002/owner/venues" class="btn">Manage Venues</a>`
   );
   const text = `Hello ${ownerName},\n\nYour venue listing for "${venueTitle}" was declined.`;
-  await sendMail({ to, subject: `[BookMyVenue] Venue Listing Declined - ${venueTitle}`, html, text });
+  await sendMail({
+    to,
+    subject: `[BookMyVenue] Venue Listing Declined - ${venueTitle}`,
+    html,
+    text,
+  });
 };

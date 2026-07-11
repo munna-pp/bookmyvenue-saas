@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, SlidersHorizontal, MapPin, Users, IndianRupee, Star, Map as MapIcon, List, Navigation } from 'lucide-react';
+import {
+  Search,
+  SlidersHorizontal,
+  MapPin,
+  Users,
+  IndianRupee,
+  Star,
+  Map as MapIcon,
+  List,
+  Navigation,
+} from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Venue } from '../../../../../packages/shared-types/src';
 
@@ -13,7 +23,7 @@ export default function CustomerVenuesBrowse() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   // Pagination & Total
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,8 +56,14 @@ export default function CustomerVenuesBrowse() {
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const amenityOptions = [
-    'Air Conditioning', 'WiFi', 'Projector', 'Valet Parking', 
-    'Catering Kitchen', 'Outdoor Lawn', 'AV Equipment', 'Swimming Pool'
+    'Air Conditioning',
+    'WiFi',
+    'Projector',
+    'Valet Parking',
+    'Catering Kitchen',
+    'Outdoor Lawn',
+    'AV Equipment',
+    'Swimming Pool',
   ];
 
   const venueTypes = [
@@ -129,7 +145,9 @@ export default function CustomerVenuesBrowse() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(getApiUrl(`/api/v1/search/suggestions?q=${encodeURIComponent(search)}`));
+        const res = await fetch(
+          getApiUrl(`/api/v1/search/suggestions?q=${encodeURIComponent(search)}`)
+        );
         const json = await res.json();
         if (res.ok && json.data.suggestions) {
           setSuggestions(json.data.suggestions);
@@ -189,7 +207,7 @@ export default function CustomerVenuesBrowse() {
 
       const res = await fetch(getApiUrl(`${endpoint}?${queryParams.toString()}`));
       const result = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(result.message || 'Failed to fetch search results');
       }
@@ -205,7 +223,22 @@ export default function CustomerVenuesBrowse() {
 
   useEffect(() => {
     fetchVenues();
-  }, [page, useGeo, geoCoords, radius, city, venueType, capacity, minPrice, maxPrice, rating, selectedAmenities, featuredOnly, eventDate, sortBy]);
+  }, [
+    page,
+    useGeo,
+    geoCoords,
+    radius,
+    city,
+    venueType,
+    capacity,
+    minPrice,
+    maxPrice,
+    rating,
+    selectedAmenities,
+    featuredOnly,
+    eventDate,
+    sortBy,
+  ]);
 
   // Handle autocomplete suggestion select
   const selectSuggestion = (text: string) => {
@@ -218,7 +251,7 @@ export default function CustomerVenuesBrowse() {
   const toggleAmenity = (amenity: string) => {
     setPage(1);
     if (selectedAmenities.includes(amenity)) {
-      setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
+      setSelectedAmenities(selectedAmenities.filter((a) => a !== amenity));
     } else {
       setSelectedAmenities([...selectedAmenities, amenity]);
     }
@@ -260,13 +293,32 @@ export default function CustomerVenuesBrowse() {
     <main className="min-h-screen bg-background text-primary-text flex flex-col">
       {/* Top Header */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs z-10">
-        <a href="/" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
+        <a href="/" className="text-2xl font-black text-primary tracking-tight">
+          BookMyVenue
+        </a>
         <div className="flex items-center gap-6">
-          <a href="/owner" className="text-sm font-bold text-secondary-text hover:text-primary transition">List Your Venue</a>
-          <a href="/bookings" className="text-sm font-bold text-secondary-text hover:text-primary transition">My Bookings</a>
-          <a href="/wishlist" className="text-sm font-bold text-secondary-text hover:text-primary transition">Wishlist</a>
+          <a
+            href="/owner"
+            className="text-sm font-bold text-secondary-text hover:text-primary transition"
+          >
+            List Your Venue
+          </a>
+          <a
+            href="/bookings"
+            className="text-sm font-bold text-secondary-text hover:text-primary transition"
+          >
+            My Bookings
+          </a>
+          <a
+            href="/wishlist"
+            className="text-sm font-bold text-secondary-text hover:text-primary transition"
+          >
+            Wishlist
+          </a>
           <NotificationBell />
-          <a href="/login" className="text-sm font-bold text-primary hover:underline">Sign In</a>
+          <a href="/login" className="text-sm font-bold text-primary hover:underline">
+            Sign In
+          </a>
         </div>
       </header>
 
@@ -297,9 +349,17 @@ export default function CustomerVenuesBrowse() {
                   onClick={() => selectSuggestion(item.text)}
                   className="px-4 py-3 hover:bg-card-bg flex items-center gap-3 cursor-pointer text-sm"
                 >
-                  {item.type === 'city' ? <MapPin size={16} className="text-primary" /> : item.type === 'type' ? <SlidersHorizontal size={16} className="text-accent" /> : <Star size={16} className="text-yellow-500" />}
+                  {item.type === 'city' ? (
+                    <MapPin size={16} className="text-primary" />
+                  ) : item.type === 'type' ? (
+                    <SlidersHorizontal size={16} className="text-accent" />
+                  ) : (
+                    <Star size={16} className="text-yellow-500" />
+                  )}
                   <span>{item.text}</span>
-                  <span className="text-[10px] bg-muted-text/10 text-muted-text px-2 py-0.5 rounded-full capitalize ml-auto">{item.type}</span>
+                  <span className="text-[10px] bg-muted-text/10 text-muted-text px-2 py-0.5 rounded-full capitalize ml-auto">
+                    {item.type}
+                  </span>
                 </div>
               ))}
             </div>
@@ -318,7 +378,9 @@ export default function CustomerVenuesBrowse() {
             className="px-4 py-2.5 bg-card-bg border border-border-custom rounded-xl text-sm font-semibold focus:outline-none focus:border-primary transition disabled:opacity-50"
           >
             {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
 
@@ -335,11 +397,14 @@ export default function CustomerVenuesBrowse() {
 
       {/* Split Screen search layout */}
       <div className="flex-1 flex overflow-hidden relative">
-        
         {/* Left Side: Result cards list */}
-        <div className={`w-full ${showMap ? 'hidden' : 'flex'} lg:flex lg:w-1/2 flex-col overflow-y-auto px-6 py-6 border-r border-border-custom`}>
+        <div
+          className={`w-full ${showMap ? 'hidden' : 'flex'} lg:flex lg:w-1/2 flex-col overflow-y-auto px-6 py-6 border-r border-border-custom`}
+        >
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-black tracking-tight">Available Spaces ({venues.length})</h1>
+            <h1 className="text-2xl font-black tracking-tight">
+              Available Spaces ({venues.length})
+            </h1>
             <button
               onClick={() => setShowFiltersMobile(!showFiltersMobile)}
               className="lg:hidden flex items-center gap-2 bg-primary/10 text-primary px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-primary/20 transition"
@@ -358,7 +423,10 @@ export default function CustomerVenuesBrowse() {
             // Skeleton Loader Grid
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[...Array(limit)].map((_, i) => (
-                <div key={i} className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs animate-pulse">
+                <div
+                  key={i}
+                  className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs animate-pulse"
+                >
                   <div className="h-44 bg-border-custom/20 w-full" />
                   <div className="p-5 flex flex-col gap-3">
                     <div className="h-4 bg-border-custom/30 rounded-full w-2/3" />
@@ -376,7 +444,10 @@ export default function CustomerVenuesBrowse() {
             <div className="flex flex-col justify-center items-center py-20 bg-surface border border-border-custom rounded-3xl text-center px-4">
               <span className="text-4xl mb-4">🏛️</span>
               <h3 className="text-lg font-bold text-primary-text">No Venues Match</h3>
-              <p className="text-xs text-body-text max-w-sm mt-1">We couldn't find any approved venues matching your filters. Broaden your search criteria or reset filters.</p>
+              <p className="text-xs text-body-text max-w-sm mt-1">
+                We couldn't find any approved venues matching your filters. Broaden your search
+                criteria or reset filters.
+              </p>
               <button
                 onClick={resetFilters}
                 className="mt-6 bg-primary text-surface px-5 py-2.5 rounded-full font-bold text-xs shadow-xs hover:bg-primary/95 transition cursor-pointer"
@@ -390,13 +461,16 @@ export default function CustomerVenuesBrowse() {
               {venues.map((venue) => (
                 <article
                   key={venue.id}
-                  onClick={() => window.location.href = `/venues/${venue.slug}`}
+                  onClick={() => (window.location.href = `/venues/${venue.slug}`)}
                   className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition duration-200 cursor-pointer flex flex-col justify-between"
                 >
                   <div>
                     <div className="h-44 bg-border-custom/20 relative overflow-hidden">
                       <img
-                        src={venue.featuredImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80'}
+                        src={
+                          venue.featuredImage ||
+                          'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80'
+                        }
                         alt={venue.title}
                         className="w-full h-full object-cover hover:scale-102 transition duration-500"
                       />
@@ -411,9 +485,15 @@ export default function CustomerVenuesBrowse() {
                     </div>
 
                     <div className="p-5 flex flex-col gap-1.5">
-                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">{venue.category}</span>
-                      <h2 className="text-base font-extrabold text-primary-text line-clamp-1">{venue.title}</h2>
-                      <p className="text-xs text-body-text line-clamp-2 mt-1">{venue.city}, {venue.state}</p>
+                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
+                        {venue.category}
+                      </span>
+                      <h2 className="text-base font-extrabold text-primary-text line-clamp-1">
+                        {venue.title}
+                      </h2>
+                      <p className="text-xs text-body-text line-clamp-2 mt-1">
+                        {venue.city}, {venue.state}
+                      </p>
                     </div>
                   </div>
 
@@ -422,7 +502,8 @@ export default function CustomerVenuesBrowse() {
                       <Users size={14} className="text-muted-text" /> Max {venue.capacity}
                     </span>
                     <span className="text-primary font-bold">
-                      ₹{venue.pricing.pricePerDay.toLocaleString('en-IN')} <span className="text-[10px] text-muted-text font-normal">/ day</span>
+                      ₹{venue.pricing.pricePerDay.toLocaleString('en-IN')}{' '}
+                      <span className="text-[10px] text-muted-text font-normal">/ day</span>
                     </span>
                   </div>
                 </article>
@@ -435,15 +516,17 @@ export default function CustomerVenuesBrowse() {
             <div className="flex justify-center items-center gap-4 mt-8 pt-6 border-t border-border-custom/20">
               <button
                 disabled={page === 1}
-                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 className="px-4 py-2 bg-card-bg border border-border-custom rounded-xl text-xs font-bold hover:bg-card-bg/85 disabled:opacity-50 cursor-pointer"
               >
                 Previous
               </button>
-              <span className="text-xs text-secondary-text font-medium">Page {page} of {totalPages}</span>
+              <span className="text-xs text-secondary-text font-medium">
+                Page {page} of {totalPages}
+              </span>
               <button
                 disabled={page === totalPages}
-                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 className="px-4 py-2 bg-card-bg border border-border-custom rounded-xl text-xs font-bold hover:bg-card-bg/85 disabled:opacity-50 cursor-pointer"
               >
                 Next
@@ -453,7 +536,9 @@ export default function CustomerVenuesBrowse() {
         </div>
 
         {/* Right Side: Leaflet OSM Map */}
-        <div className={`w-full ${showMap ? 'flex' : 'hidden'} lg:flex lg:w-1/2 h-full bg-card-bg relative`}>
+        <div
+          className={`w-full ${showMap ? 'flex' : 'hidden'} lg:flex lg:w-1/2 h-full bg-card-bg relative`}
+        >
           <LeafletMap
             markers={mapMarkers}
             zoom={useGeo ? 13 : 12}
@@ -470,13 +555,20 @@ export default function CustomerVenuesBrowse() {
         </div>
 
         {/* Advanced Filters Drawer Panel */}
-        <div className={`fixed top-0 bottom-0 left-0 w-80 bg-surface border-r border-border-custom shadow-xl z-20 transition duration-300 transform flex flex-col justify-between ${showFiltersMobile || !showFiltersMobile ? 'lg:translate-x-0' : '-translate-x-full'} ${showFiltersMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div
+          className={`fixed top-0 bottom-0 left-0 w-80 bg-surface border-r border-border-custom shadow-xl z-20 transition duration-300 transform flex flex-col justify-between ${showFiltersMobile || !showFiltersMobile ? 'lg:translate-x-0' : '-translate-x-full'} ${showFiltersMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        >
           <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
             <div className="flex justify-between items-center pb-4 border-b border-border-custom/40">
               <span className="font-extrabold text-base flex items-center gap-2">
                 <SlidersHorizontal size={18} /> Filters
               </span>
-              <button onClick={resetFilters} className="text-xs font-bold text-primary hover:underline">Reset All</button>
+              <button
+                onClick={resetFilters}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                Reset All
+              </button>
             </div>
 
             {/* Geolocation Radial Search Toggle */}
@@ -492,10 +584,12 @@ export default function CustomerVenuesBrowse() {
                   className="rounded accent-primary w-4 h-4 cursor-pointer"
                 />
               </div>
-              <p className="text-[10px] text-muted-text">Find venues around your current live coordinates.</p>
-              
+              <p className="text-[10px] text-muted-text">
+                Find venues around your current live coordinates.
+              </p>
+
               {geoError && <p className="text-[10px] text-red-500 font-medium">{geoError}</p>}
-              
+
               {useGeo && (
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[10px] text-secondary-text font-bold">RADIUS:</span>
@@ -504,8 +598,10 @@ export default function CustomerVenuesBrowse() {
                     onChange={(e) => setRadius(e.target.value)}
                     className="flex-1 px-2.5 py-1 bg-card-bg border border-border-custom rounded-lg text-xs"
                   >
-                    {radiusOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    {radiusOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -514,7 +610,9 @@ export default function CustomerVenuesBrowse() {
 
             {/* Availability Date Filter */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">Availability Date</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                Availability Date
+              </label>
               <input
                 type="date"
                 value={eventDate}
@@ -529,7 +627,9 @@ export default function CustomerVenuesBrowse() {
 
             {/* City location Filter */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">City Name</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                City Name
+              </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-2.5 text-muted-text" size={15} />
                 <input
@@ -548,7 +648,9 @@ export default function CustomerVenuesBrowse() {
 
             {/* Min and Max Budget price inputs */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">Budget Range / Day</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                Budget Range / Day
+              </label>
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <IndianRupee className="absolute left-2.5 top-2.5 text-muted-text" size={13} />
@@ -584,7 +686,9 @@ export default function CustomerVenuesBrowse() {
 
             {/* Capacity filter */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">Min Capacity</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                Min Capacity
+              </label>
               <div className="relative">
                 <Users className="absolute left-3 top-2.5 text-muted-text" size={15} />
                 <input
@@ -603,7 +707,9 @@ export default function CustomerVenuesBrowse() {
 
             {/* Star Rating select filter */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">Star Rating</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                Star Rating
+              </label>
               <select
                 value={rating}
                 disabled={useGeo}
@@ -613,15 +719,19 @@ export default function CustomerVenuesBrowse() {
                 }}
                 className="w-full px-3 py-2 bg-card-bg border border-border-custom rounded-xl text-xs focus:outline-none"
               >
-                {ratingOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                {ratingOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Featured and High Quality only filter */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-secondary-text uppercase">Featured Venues Only</span>
+              <span className="text-xs font-bold text-secondary-text uppercase">
+                Featured Venues Only
+              </span>
               <input
                 type="checkbox"
                 checked={featuredOnly}
@@ -636,10 +746,15 @@ export default function CustomerVenuesBrowse() {
 
             {/* Amenities Checklists */}
             <div>
-              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">Amenities</label>
+              <label className="block text-xs font-bold text-secondary-text uppercase mb-2">
+                Amenities
+              </label>
               <div className="flex flex-col gap-2">
                 {amenityOptions.map((amenity) => (
-                  <label key={amenity} className="flex items-center gap-2.5 text-xs font-medium text-body-text cursor-pointer">
+                  <label
+                    key={amenity}
+                    className="flex items-center gap-2.5 text-xs font-medium text-body-text cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={selectedAmenities.includes(amenity)}

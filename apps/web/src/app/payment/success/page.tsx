@@ -15,7 +15,7 @@ function SuccessContent() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchSuccessDetails = async () => {
@@ -52,7 +52,9 @@ function SuccessContent() {
     return (
       <div className="flex flex-col justify-center items-center gap-4 text-center">
         <Loader2 size={36} className="animate-spin text-primary" />
-        <span className="text-sm font-semibold text-secondary-text">Confirming payment transaction...</span>
+        <span className="text-sm font-semibold text-secondary-text">
+          Confirming payment transaction...
+        </span>
       </div>
     );
   }
@@ -65,7 +67,9 @@ function SuccessContent() {
 
       <div>
         <h1 className="text-2xl font-black text-primary-text">Payment Successful!</h1>
-        <p className="text-xs text-body-text mt-1.5 leading-relaxed">Your reservation is confirmed. The venue host is notified of your transaction capture.</p>
+        <p className="text-xs text-body-text mt-1.5 leading-relaxed">
+          Your reservation is confirmed. The venue host is notified of your transaction capture.
+        </p>
       </div>
 
       {booking && (
@@ -76,18 +80,20 @@ function SuccessContent() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-text">Amount paid</span>
-            <span className="font-black text-primary">₹{booking.totalAmount.toLocaleString('en-IN')}</span>
+            <span className="font-black text-primary">
+              ₹{booking.totalAmount.toLocaleString('en-IN')}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-text">Venue</span>
-            <span className="font-bold text-primary-text truncate max-w-[200px]">{booking.venue?.title}</span>
+            <span className="font-bold text-primary-text truncate max-w-[200px]">
+              {booking.venue?.title}
+            </span>
           </div>
         </div>
       )}
 
-      {errorMsg && (
-        <div className="text-xs text-red-500 font-semibold">{errorMsg}</div>
-      )}
+      {errorMsg && <div className="text-xs text-red-500 font-semibold">{errorMsg}</div>}
 
       <div className="flex flex-col gap-2.5 w-full pt-2">
         <button
@@ -96,9 +102,9 @@ function SuccessContent() {
         >
           <FileDown size={14} /> Download PDF Invoice
         </button>
-        
+
         <button
-          onClick={() => window.location.href = '/bookings'}
+          onClick={() => (window.location.href = '/bookings')}
           className="w-full border border-border-custom hover:border-primary/50 text-secondary-text py-3 rounded-xl font-bold text-xs transition flex justify-center items-center gap-1 cursor-pointer"
         >
           Go to My Bookings <ArrowRight size={12} />
@@ -111,12 +117,16 @@ function SuccessContent() {
 export default function PaymentSuccessPage() {
   return (
     <main className="min-h-screen bg-background text-primary-text flex flex-col justify-center items-center px-4">
-      <Suspense fallback={
-        <div className="flex flex-col justify-center items-center gap-4 text-center">
-          <Loader2 size={36} className="animate-spin text-primary" />
-          <span className="text-sm font-semibold text-secondary-text">Loading secure gateway success logs...</span>
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex flex-col justify-center items-center gap-4 text-center">
+            <Loader2 size={36} className="animate-spin text-primary" />
+            <span className="text-sm font-semibold text-secondary-text">
+              Loading secure gateway success logs...
+            </span>
+          </div>
+        }
+      >
         <SuccessContent />
       </Suspense>
     </main>

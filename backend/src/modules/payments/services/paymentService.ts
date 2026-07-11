@@ -3,6 +3,10 @@ import crypto from 'crypto';
 import PDFDocument from 'pdfkit';
 import { EventEmitter } from 'events';
 import { config } from '../../../config/index.js';
+import { IInvoice } from '../models/Invoice.js';
+import { IBooking } from '../../bookings/models/Booking.js';
+import { IUser } from '../../auth/models/User.js';
+import { IVenue } from '../../venues/models/Venue.js';
 
 // Initialize Razorpay
 // Using Test keys loaded from env
@@ -31,7 +35,11 @@ export const verifySignature = (orderId: string, paymentId: string, signature: s
 /**
  * Verify Razorpay webhook signature
  */
-export const verifyWebhookSignature = (payload: string, signature: string, webhookSecret: string): boolean => {
+export const verifyWebhookSignature = (
+  payload: string,
+  signature: string,
+  webhookSecret: string
+): boolean => {
   try {
     const hmac = crypto.createHmac('sha256', webhookSecret);
     hmac.update(payload);
@@ -46,10 +54,10 @@ export const verifyWebhookSignature = (payload: string, signature: string, webho
  * Generate a professional invoice PDF buffer using PDFKit
  */
 export const generateInvoicePdfBuffer = (
-  invoice: any,
-  booking: any,
-  customer: any,
-  venue: any
+  invoice: IInvoice,
+  booking: IBooking,
+  customer: IUser,
+  venue: IVenue
 ): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     try {
@@ -61,7 +69,10 @@ export const generateInvoicePdfBuffer = (
 
       // Header Brand
       doc.fillColor('#4F46E5').fontSize(24).text('BookMyVenue', { align: 'left' });
-      doc.fillColor('#6B7280').fontSize(10).text('Premium Venue Booking Solutions', { align: 'left' });
+      doc
+        .fillColor('#6B7280')
+        .fontSize(10)
+        .text('Premium Venue Booking Solutions', { align: 'left' });
       doc.moveDown(1);
 
       // Invoice & Booking Info block
@@ -69,7 +80,9 @@ export const generateInvoicePdfBuffer = (
       doc.moveDown(0.5);
       doc.fontSize(10).fillColor('#374151');
       doc.text(`Invoice Number: ${invoice.invoiceNumber}`);
-      doc.text(`Invoice Date: ${new Date(invoice.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}`);
+      doc.text(
+        `Invoice Date: ${new Date(invoice.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}`
+      );
       doc.text(`Booking Reference: #${booking.bookingNumber}`);
       if (invoice.paymentId) {
         doc.text(`Payment ID: ${invoice.paymentId}`);
@@ -90,7 +103,9 @@ export const generateInvoicePdfBuffer = (
       doc.fontSize(10).fillColor('#374151');
       doc.text(`Venue Listing: ${venue?.title || 'Seeded Ballroom'}`);
       if (venue?.address) {
-        doc.text(`Location Address: ${venue.address.street}, ${venue.address.city}, ${venue.address.state}`);
+        doc.text(
+          `Location Address: ${venue.address.street}, ${venue.address.city}, ${venue.address.state}`
+        );
       }
       doc.moveDown(2);
 
@@ -98,23 +113,33 @@ export const generateInvoicePdfBuffer = (
       doc.fillColor('#1F2937').fontSize(12).text('PAYMENT BREAKDOWN', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(10).fillColor('#374151');
-      
+
       doc.text(`Subtotal Rental Fee: INR ${invoice.subtotal.toLocaleString('en-IN')}`);
       doc.text(`18% GST Service Tax: INR ${invoice.gst.toLocaleString('en-IN')}`);
-      
+
       if (invoice.discount > 0) {
         doc.fillColor('#B91C1C');
         doc.text(`Discount Coupon Deductions: -INR ${invoice.discount.toLocaleString('en-IN')}`);
         doc.fillColor('#374151');
       }
-      
+
       doc.moveDown(1);
-      doc.font('Helvetica-Bold').fontSize(14).fillColor('#4F46E5').text(`Total Invoice Amount: INR ${invoice.total.toLocaleString('en-IN')}`);
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(14)
+        .fillColor('#4F46E5')
+        .text(`Total Invoice Amount: INR ${invoice.total.toLocaleString('en-IN')}`);
       doc.font('Helvetica'); // Switch back to normal
       doc.moveDown(3);
 
       // Footer
-      doc.fontSize(8).fillColor('#9CA3AF').text('This is a computer-generated transaction record. Thank you for choosing BookMyVenue.', { align: 'center' });
+      doc
+        .fontSize(8)
+        .fillColor('#9CA3AF')
+        .text(
+          'This is a computer-generated transaction record. Thank you for choosing BookMyVenue.',
+          { align: 'center' }
+        );
 
       doc.end();
     } catch (error) {

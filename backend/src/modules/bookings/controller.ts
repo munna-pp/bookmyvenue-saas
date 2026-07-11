@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { Booking } from './models/Booking.js';
+import { Booking, IBooking } from './models/Booking.js';
 import { Venue } from '../venues/models/Venue.js';
 import { User } from '../auth/models/User.js';
-import { acquireBookingLock, releaseBookingLock, bookingEvents } from './services/bookingService.js';
+import {
+  acquireBookingLock,
+  releaseBookingLock,
+  bookingEvents,
+} from './services/bookingService.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { logger } from '../../utils/logger.js';
 
@@ -27,29 +31,35 @@ const checkTransition = (current: string, next: string): boolean => {
 /**
  * Helper to dynamically stitch venue and user details onto bookings lists (in-memory join)
  */
-const populateBookingsMetadata = async (bookings: any[]): Promise<any[]> => {
+const populateBookingsMetadata = async (bookings: IBooking[]): Promise<unknown[]> => {
   if (bookings.length === 0) return [];
 
-  const venueIds = Array.from(new Set(bookings.map(b => b.venueId.toString())));
-  const customerIds = Array.from(new Set(bookings.map(b => b.customerId.toString())));
-  const ownerIds = Array.from(new Set(bookings.map(b => b.ownerId.toString())));
+  const venueIds = Array.from(new Set(bookings.map((b) => b.venueId.toString())));
+  const customerIds = Array.from(new Set(bookings.map((b) => b.customerId.toString())));
+  const ownerIds = Array.from(new Set(bookings.map((b) => b.ownerId.toString())));
 
   // Fetch in parallel across separate db connections
   const [venues, customers, owners] = await Promise.all([
-    Venue.find({ _id: { $in: venueIds } }).select('title slug featuredImage address').lean(),
-    User.find({ _id: { $in: customerIds } }).select('name email').lean(),
-    User.find({ _id: { $in: ownerIds } }).select('name email').lean(),
+    Venue.find({ _id: { $in: venueIds } })
+      .select('title slug featuredImage address')
+      .lean(),
+    User.find({ _id: { $in: customerIds } })
+      .select('name email')
+      .lean(),
+    User.find({ _id: { $in: ownerIds } })
+      .select('name email')
+      .lean(),
   ]);
 
-  const venueMap = new Map(venues.map(v => [v._id.toString(), v]));
-  const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
-  const ownerMap = new Map(owners.map(o => [o._id.toString(), o]));
+  const venueMap = new Map(venues.map((v) => [v._id.toString(), v]));
+  const customerMap = new Map(customers.map((c) => [c._id.toString(), c]));
+  const ownerMap = new Map(owners.map((o) => [o._id.toString(), o]));
 
-  return bookings.map(b => {
+  return bookings.map((b) => {
     const bookingObj = b.toObject ? b.toObject() : b;
-    bookingObj.venue = venueMap.get(b.venueId.toString()) || null;
-    bookingObj.customer = customerMap.get(b.customerId.toString()) || null;
-    bookingObj.owner = ownerMap.get(b.ownerId.toString()) || null;
+    (bookingObj as unknown as Record<string, unknown>).venue = venueMap.get(b.venueId.toString()) || null;
+    (bookingObj as unknown as Record<string, unknown>).customer = customerMap.get(b.customerId.toString()) || null;
+    (bookingObj as unknown as Record<string, unknown>).owner = ownerMap.get(b.ownerId.toString()) || null;
     return bookingObj;
   });
 };
@@ -65,7 +75,8 @@ export const createBooking = async (
 ): Promise<void> => {
   let lockAcquired = false;
   let dateStr = '';
-  const { venueId, eventType, eventDate, startTime, endTime, guestCount, specialRequests } = req.body;
+  const { venueId, eventType, eventDate, startTime, endTime, guestCount, specialRequests } =
+    req.body;
 
   try {
     // 1. Normalize date representing day start (strip hours)
@@ -76,7 +87,12 @@ export const createBooking = async (
     // 2. Prevent race conditions: Acquire Redis concurrency lock for this venue and date
     const locked = await acquireBookingLock(venueId, dateStr, 6000);
     if (!locked) {
-      next(new AppError('This venue is currently being booked on this date. Please try again shortly.', 409));
+      next(
+        new AppError(
+          'This venue is currently being booked on this date. Please try again shortly.',
+          409
+        )
+      );
       return;
     }
     lockAcquired = true;
@@ -89,7 +105,9 @@ export const createBooking = async (
     }
 
     if (venue.approvalStatus !== 'APPROVED' || venue.publicationStatus !== 'PUBLISHED') {
-      next(new AppError('This venue listing is currently pending approval or is not published.', 400));
+      next(
+        new AppError('This venue listing is currently pending approval or is not published.', 400)
+      );
       return;
     }
 
@@ -110,7 +128,12 @@ export const createBooking = async (
     });
 
     if (overlapping) {
-      next(new AppError('The requested venue is already booked for this timeslot on the selected date.', 409));
+      next(
+        new AppError(
+          'The requested venue is already booked for this timeslot on the selected date.',
+          409
+        )
+      );
       return;
     }
 
@@ -188,7 +211,7 @@ export const getMyBookings = async (
 ): Promise<void> => {
   try {
     const customerId = req.user!._id;
-    const query: any = { customerId };
+    const query: Record<string, unknown> = { customerId };
 
     // Filter parameters
     if (req.query.bookingStatus) {
@@ -238,7 +261,7 @@ export const getOwnerBookings = async (
 ): Promise<void> => {
   try {
     const ownerId = req.user!._id;
-    const query: any = { ownerId };
+    const query: Record<string, unknown> = { ownerId };
 
     if (req.query.bookingStatus) {
       query.bookingStatus = req.query.bookingStatus;
@@ -282,7 +305,7 @@ export const getAdminBookings = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const query: any = {};
+    const query: Record<string, unknown> = {};
 
     if (req.query.bookingStatus) {
       query.bookingStatus = req.query.bookingStatus;
@@ -342,7 +365,12 @@ export const approveBooking = async (
 
     // State machine check
     if (!checkTransition(booking.bookingStatus, 'OWNER_APPROVED')) {
-      next(new AppError(`Invalid state transition from ${booking.bookingStatus} to OWNER_APPROVED.`, 400));
+      next(
+        new AppError(
+          `Invalid state transition from ${booking.bookingStatus} to OWNER_APPROVED.`,
+          400
+        )
+      );
       return;
     }
 
@@ -396,7 +424,12 @@ export const rejectBooking = async (
 
     // State machine check
     if (!checkTransition(booking.bookingStatus, 'OWNER_REJECTED')) {
-      next(new AppError(`Invalid state transition from ${booking.bookingStatus} to OWNER_REJECTED.`, 400));
+      next(
+        new AppError(
+          `Invalid state transition from ${booking.bookingStatus} to OWNER_REJECTED.`,
+          400
+        )
+      );
       return;
     }
 
@@ -458,7 +491,9 @@ export const cancelBooking = async (
 
     // State machine check (admins bypass state transitions)
     if (!isAdminUser && !checkTransition(booking.bookingStatus, 'CANCELLED')) {
-      next(new AppError(`Invalid state transition from ${booking.bookingStatus} to CANCELLED.`, 400));
+      next(
+        new AppError(`Invalid state transition from ${booking.bookingStatus} to CANCELLED.`, 400)
+      );
       return;
     }
 
@@ -528,7 +563,9 @@ export const adminOverrideBooking = async (
     });
 
     await booking.save();
-    logger.info(`🛠️ Booking status OVERRIDDEN by Admin: #${booking.bookingNumber} to status ${bookingStatus}`);
+    logger.info(
+      `🛠️ Booking status OVERRIDDEN by Admin: #${booking.bookingNumber} to status ${bookingStatus}`
+    );
 
     res.status(200).json({
       status: 'success',
@@ -575,10 +612,12 @@ export const getVenueCalendar = async (
       venueId: id,
       eventDate: { $gte: startDate, $lte: endDate },
       bookingStatus: { $nin: ['CANCELLED', 'OWNER_REJECTED'] },
-    }).select('eventDate startTime endTime bookingStatus bookingNumber').lean();
+    })
+      .select('eventDate startTime endTime bookingStatus bookingNumber')
+      .lean();
 
     // Map booked slots
-    const bookedSlots = bookings.map(b => ({
+    const bookedSlots = bookings.map((b) => ({
       date: new Date(b.eventDate).toISOString().slice(0, 10),
       startTime: b.startTime,
       endTime: b.endTime,
@@ -588,12 +627,12 @@ export const getVenueCalendar = async (
 
     // Map blocked manual slots
     const blockedSlots = venue.availability
-      .filter(av => {
+      .filter((av) => {
         const avStart = new Date(av.start);
         const avEnd = new Date(av.end);
         return avStart <= endDate && avEnd >= startDate;
       })
-      .map(av => ({
+      .map((av) => ({
         startDate: new Date(av.start).toISOString().slice(0, 10),
         endDate: new Date(av.end).toISOString().slice(0, 10),
         reason: av.reason,

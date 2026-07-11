@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { Types } from 'mongoose';
+import { Types, SortOrder } from 'mongoose';
 import { Venue } from './models/Venue.js';
+import { IUser } from '../auth/models/User.js';
 import { uploadService } from './services/uploadService.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { logger } from '../../utils/logger.js';
@@ -15,7 +16,20 @@ export const createVenue = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { title, description, venueType, category, address, location, capacity, pricing, amenities, policies, images, publicationStatus } = req.body;
+    const {
+      title,
+      description,
+      venueType,
+      category,
+      address,
+      location,
+      capacity,
+      pricing,
+      amenities,
+      policies,
+      images,
+      publicationStatus,
+    } = req.body;
 
     // 1. Process and upload base64 images
     const uploadedImages: string[] = [];
@@ -188,13 +202,9 @@ export const deleteVenue = async (
  * GET /api/v1/venues
  * Browse published venues (Public browse, search, filters)
  */
-export const getVenues = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const getVenues = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const query: any = { isDeleted: false };
+    const query: Record<string, unknown> = { isDeleted: false };
 
     // Default filters for public browse: MUST be APPROVED and PUBLISHED
     // Unless the user is authenticated and has the ADMIN role!
@@ -233,13 +243,14 @@ export const getVenues = async (
 
     // 3. Price Filter (range mapping)
     if (req.query.minPrice || req.query.maxPrice) {
-      query['pricing.pricePerDay'] = {};
+      const priceQuery: Record<string, number> = {};
       if (req.query.minPrice) {
-        query['pricing.pricePerDay'].$gte = parseFloat(req.query.minPrice as string);
+        priceQuery.$gte = parseFloat(req.query.minPrice as string);
       }
       if (req.query.maxPrice) {
-        query['pricing.pricePerDay'].$lte = parseFloat(req.query.maxPrice as string);
+        priceQuery.$lte = parseFloat(req.query.maxPrice as string);
       }
+      query['pricing.pricePerDay'] = priceQuery;
     }
 
     // 4. Amenities Filter (all matches)
@@ -255,7 +266,7 @@ export const getVenues = async (
       const lat = parseFloat(req.query.lat as string);
       const lng = parseFloat(req.query.lng as string);
       const radiusKm = parseFloat((req.query.radius as string) || '10'); // default 10km radius
-      
+
       // Earth radius is ~6378.1 km
       query.location = {
         $nearSphere: {
@@ -269,7 +280,7 @@ export const getVenues = async (
     }
 
     // Sorting definition
-    let sortOptions: any = { createdAt: -1 }; // default: newest first
+    let sortOptions: { [key: string]: SortOrder } = { createdAt: -1 }; // default: newest first
     if (req.query.sortBy) {
       const sortBy = req.query.sortBy as string;
       if (sortBy === 'priceAsc') sortOptions = { 'pricing.pricePerDay': 1 };
@@ -317,7 +328,7 @@ export const getVenueBySlug = async (
   try {
     const { slug } = req.params;
 
-    const query: any = { isDeleted: false };
+    const query: Record<string, unknown> = { isDeleted: false };
     if (Types.ObjectId.isValid(slug)) {
       query.$or = [{ _id: slug }, { slug }];
     } else {
@@ -331,10 +342,7 @@ export const getVenueBySlug = async (
     }
 
     // If venue is not approved or not published, restrict access to the Owner or Admins only
-    if (
-      venue.approvalStatus !== 'APPROVED' ||
-      venue.publicationStatus !== 'PUBLISHED'
-    ) {
+    if (venue.approvalStatus !== 'APPROVED' || venue.publicationStatus !== 'PUBLISHED') {
       const isOwner = req.user && venue.ownerId.toString() === req.user._id.toString();
       const isAdmin = req.user && req.user.role === 'admin';
 
@@ -422,7 +430,7 @@ export const approveVenue = async (
 
     // Emit event
     const { venueEvents } = await import('../../utils/events.js');
-    venueEvents.emit('VENUE_APPROVED', { venue, owner: (venue as any).ownerId });
+    venueEvents.emit('VENUE_APPROVED', { venue, owner: venue.ownerId as unknown as IUser });
 
     res.status(200).json({
       status: 'success',
@@ -430,8 +438,8 @@ export const approveVenue = async (
       data: {
         venue: {
           ...venue.toObject(),
-          ownerId: (venue.ownerId as any)._id || venue.ownerId
-        }
+          ownerId: (venue.ownerId as unknown as IUser)._id || venue.ownerId,
+        },
       },
     });
   } catch (error) {
@@ -466,7 +474,7 @@ export const rejectVenue = async (
 
     // Emit event
     const { venueEvents } = await import('../../utils/events.js');
-    venueEvents.emit('VENUE_REJECTED', { venue, owner: (venue as any).ownerId });
+    venueEvents.emit('VENUE_REJECTED', { venue, owner: venue.ownerId as unknown as IUser });
 
     res.status(200).json({
       status: 'success',
@@ -474,8 +482,8 @@ export const rejectVenue = async (
       data: {
         venue: {
           ...venue.toObject(),
-          ownerId: (venue.ownerId as any)._id || venue.ownerId
-        }
+          ownerId: (venue.ownerId as unknown as IUser)._id || venue.ownerId,
+        },
       },
     });
   } catch (error) {

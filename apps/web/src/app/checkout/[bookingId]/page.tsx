@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { CreditCard, Calendar, Clock, Loader2, AlertCircle, HelpCircle, ShieldCheck, Ticket, Check } from 'lucide-react';
+import {
+  CreditCard,
+  Calendar,
+  Clock,
+  Loader2,
+  AlertCircle,
+  HelpCircle,
+  ShieldCheck,
+  Ticket,
+  Check,
+} from 'lucide-react';
 import { getApiUrl } from '../../../utils/api';
 import { Booking } from '@bookmyvenue/shared-types';
 
@@ -25,7 +35,7 @@ export default function CustomerCheckoutPage() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchBooking = async () => {
@@ -183,7 +193,9 @@ export default function CustomerCheckoutPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center gap-4">
         <Loader2 size={36} className="animate-spin text-primary" />
-        <span className="text-sm font-semibold text-secondary-text">Loading checkout details...</span>
+        <span className="text-sm font-semibold text-secondary-text">
+          Loading checkout details...
+        </span>
       </div>
     );
   }
@@ -194,9 +206,11 @@ export default function CustomerCheckoutPage() {
         <div className="w-full max-w-md bg-surface border border-border-custom rounded-3xl p-8 text-center shadow-md">
           <span className="text-4xl">⚠️</span>
           <h1 className="text-lg font-bold text-primary-text mt-3">Checkout Loading Failed</h1>
-          <p className="text-xs text-body-text mt-2">{errorMsg || 'The booking reference does not exist.'}</p>
+          <p className="text-xs text-body-text mt-2">
+            {errorMsg || 'The booking reference does not exist.'}
+          </p>
           <button
-            onClick={() => window.location.href = '/bookings'}
+            onClick={() => (window.location.href = '/bookings')}
             className="mt-6 bg-primary text-surface px-6 py-2.5 rounded-full font-bold text-xs shadow-xs hover:bg-primary/95 transition cursor-pointer"
           >
             Go to Bookings History
@@ -218,8 +232,15 @@ export default function CustomerCheckoutPage() {
     <main className="min-h-screen bg-background text-primary-text pb-20">
       {/* Top Navbar */}
       <header className="border-b border-border-custom bg-surface py-5 px-6 md:px-12 flex justify-between items-center shadow-xs">
-        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
-        <a href="/bookings" className="text-xs font-bold text-secondary-text hover:text-primary transition">Cancel & Back</a>
+        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">
+          BookMyVenue
+        </a>
+        <a
+          href="/bookings"
+          className="text-xs font-bold text-secondary-text hover:text-primary transition"
+        >
+          Cancel & Back
+        </a>
       </header>
 
       {/* Checkout Content Container */}
@@ -228,40 +249,60 @@ export default function CustomerCheckoutPage() {
           <h1 className="text-3xl font-extrabold text-primary-text tracking-tight flex items-center gap-2">
             <CreditCard className="text-primary" /> Invoice Secure Checkout
           </h1>
-          <p className="text-sm text-body-text">Review your reservation breakdown and checkout securely using Razorpay Test Mode.</p>
+          <p className="text-sm text-body-text">
+            Review your reservation breakdown and checkout securely using Razorpay Test Mode.
+          </p>
         </div>
 
         {/* Responsive layout: Checkout Detail & Invoice Summary */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
-          
           {/* Booking Summary Columns */}
           <div className="md:col-span-3 space-y-6">
-            
             {/* Booking Details Card */}
             <div className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs space-y-4">
-              <span className="text-[10px] font-bold text-primary block uppercase tracking-widest">#{booking.bookingNumber}</span>
-              <h3 className="font-extrabold text-base text-primary-text">{booking.venue?.title || 'Ballroom Listing'}</h3>
-              
+              <span className="text-[10px] font-bold text-primary block uppercase tracking-widest">
+                #{booking.bookingNumber}
+              </span>
+              <h3 className="font-extrabold text-base text-primary-text">
+                {booking.venue?.title || 'Ballroom Listing'}
+              </h3>
+
               <div className="grid grid-cols-2 gap-4 text-xs text-body-text pt-2 border-t border-border-custom/10">
                 <div>
                   <span className="block text-[8px] text-muted-text font-bold uppercase">Date</span>
-                  <span className="font-extrabold text-primary-text flex items-center gap-1 mt-0.5"><Calendar size={12} /> {new Date(booking.eventDate).toLocaleDateString()}</span>
+                  <span className="font-extrabold text-primary-text flex items-center gap-1 mt-0.5">
+                    <Calendar size={12} /> {new Date(booking.eventDate).toLocaleDateString()}
+                  </span>
                 </div>
                 <div>
-                  <span className="block text-[8px] text-muted-text font-bold uppercase">Timeslot</span>
-                  <span className="font-extrabold text-primary-text flex items-center gap-1 mt-0.5"><Clock size={12} /> {booking.startTime} - {booking.endTime}</span>
+                  <span className="block text-[8px] text-muted-text font-bold uppercase">
+                    Timeslot
+                  </span>
+                  <span className="font-extrabold text-primary-text flex items-center gap-1 mt-0.5">
+                    <Clock size={12} /> {booking.startTime} - {booking.endTime}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Coupons Card */}
             <div className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs space-y-4">
-              <h4 className="font-bold text-xs text-primary-text flex items-center gap-1.5"><Ticket size={14} className="text-primary" /> Apply Coupon</h4>
-              
+              <h4 className="font-bold text-xs text-primary-text flex items-center gap-1.5">
+                <Ticket size={14} className="text-primary" /> Apply Coupon
+              </h4>
+
               {appliedCoupon ? (
                 <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-xs font-bold rounded-2xl flex justify-between items-center">
-                  <span className="flex items-center gap-1.5"><Check size={14} /> Coupon {appliedCoupon.code} Applied (-₹{appliedCoupon.discount})</span>
-                  <button onClick={handleRemoveCoupon} className="text-[9px] text-red-500 uppercase tracking-wider hover:underline font-extrabold">Remove</button>
+                  <span className="flex items-center gap-1.5">
+                    <Check size={14} /> Coupon {appliedCoupon.code} Applied (-₹
+                    {appliedCoupon.discount})
+                  </span>
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="text-[9px] text-red-500 uppercase tracking-wider hover:underline font-extrabold"
+                  >
+                    Remove
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
@@ -289,32 +330,41 @@ export default function CustomerCheckoutPage() {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* Pricing Summary Columns */}
           <div className="md:col-span-2 bg-surface border border-border-custom rounded-3xl p-6 shadow-md flex flex-col gap-6">
-            <h3 className="font-black text-sm text-primary-text border-b border-border-custom/10 pb-3">Invoice Summary</h3>
-            
+            <h3 className="font-black text-sm text-primary-text border-b border-border-custom/10 pb-3">
+              Invoice Summary
+            </h3>
+
             <div className="space-y-3.5 text-xs text-body-text">
               <div className="flex justify-between">
                 <span>Rental Subtotal</span>
-                <span className="font-bold text-primary-text">₹{subtotal.toLocaleString('en-IN')}</span>
+                <span className="font-bold text-primary-text">
+                  ₹{subtotal.toLocaleString('en-IN')}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>18% GST Service Tax</span>
-                <span className="font-bold text-primary-text">₹{taxes.toLocaleString('en-IN')}</span>
+                <span className="font-bold text-primary-text">
+                  ₹{taxes.toLocaleString('en-IN')}
+                </span>
               </div>
               {cleaning > 0 && (
                 <div className="flex justify-between">
                   <span>Cleaning fee</span>
-                  <span className="font-bold text-primary-text">₹{cleaning.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-primary-text">
+                    ₹{cleaning.toLocaleString('en-IN')}
+                  </span>
                 </div>
               )}
               {deposit > 0 && (
                 <div className="flex justify-between pb-2 border-b border-border-custom/10">
                   <span>Security deposit</span>
-                  <span className="font-bold text-primary-text">₹{deposit.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-primary-text">
+                    ₹{deposit.toLocaleString('en-IN')}
+                  </span>
                 </div>
               )}
 
@@ -349,11 +399,8 @@ export default function CustomerCheckoutPage() {
             <div className="flex gap-2 items-center justify-center text-[10px] text-muted-text font-medium pt-2 border-t border-border-custom/10">
               <ShieldCheck size={14} className="text-accent" /> Razorpay Secured Sandbox Payments
             </div>
-
           </div>
-
         </div>
-
       </div>
     </main>
   );

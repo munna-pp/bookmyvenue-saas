@@ -20,7 +20,7 @@ export const getNotifications = async (
     }
 
     const { read, page = 1, limit = 10 } = req.query;
-    const query: any = { userId, isDeleted: false };
+    const query: Record<string, unknown> = { userId, isDeleted: false };
 
     // Filter by read/unread if provided
     if (read !== undefined) {
@@ -31,14 +31,12 @@ export const getNotifications = async (
     const limitNumber = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNumber - 1) * limitNumber;
 
-    logger.info(`📋 Fetching notifications for user: ${userId} (page: ${pageNumber}, limit: ${limitNumber}, filter: ${read})`);
+    logger.info(
+      `📋 Fetching notifications for user: ${userId} (page: ${pageNumber}, limit: ${limitNumber}, filter: ${read})`
+    );
 
     const [notifications, total] = await Promise.all([
-      Notification.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNumber)
-        .lean(),
+      Notification.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNumber).lean(),
       Notification.countDocuments(query),
     ]);
 
@@ -152,10 +150,7 @@ export const markAllAsRead = async (
 
     logger.info(`🔔 Marking all notifications as read for user ${userId}`);
 
-    await Notification.updateMany(
-      { userId, isDeleted: false, read: false },
-      { read: true }
-    );
+    await Notification.updateMany({ userId, isDeleted: false, read: false }, { read: true });
 
     res.status(200).json({
       status: 'success',

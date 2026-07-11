@@ -1,7 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Home, CheckCircle2, AlertTriangle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Home,
+  CheckCircle2,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  Loader2,
+} from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Venue } from '@bookmyvenue/shared-types';
 
@@ -9,7 +19,7 @@ export default function OwnerVenuesDashboard() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   // Stats
   const [stats, setStats] = useState({
     total: 0,
@@ -19,7 +29,7 @@ export default function OwnerVenuesDashboard() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchOwnerVenues = async () => {
@@ -55,7 +65,6 @@ export default function OwnerVenuesDashboard() {
         approved: list.filter((v: Venue) => v.approvalStatus === 'APPROVED').length,
         pending: list.filter((v: Venue) => v.approvalStatus === 'PENDING').length,
       });
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to connect to the backend services.');
     } finally {
@@ -68,7 +77,9 @@ export default function OwnerVenuesDashboard() {
   }, []);
 
   const handleDeleteVenue = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+    if (
+      !window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)
+    ) {
       return;
     }
 
@@ -100,13 +111,22 @@ export default function OwnerVenuesDashboard() {
       {/* Top Navbar */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
-          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight">BMV Owner</a>
-          <span className="bg-premium/10 text-premium text-xs px-2.5 py-0.5 rounded-full font-medium">Hosting</span>
+          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight">
+            BMV Owner
+          </a>
+          <span className="bg-premium/10 text-premium text-xs px-2.5 py-0.5 rounded-full font-medium">
+            Hosting
+          </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/venues" className="text-secondary-text hover:text-primary transition font-medium text-sm">Preview Listings</a>
+          <a
+            href="/venues"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
+            Preview Listings
+          </a>
           <button
-            onClick={() => window.location.href = '/owner/venues/new'}
+            onClick={() => (window.location.href = '/owner/venues/new')}
             className="bg-primary text-surface px-5 py-2.5 rounded-full hover:bg-primary/95 transition font-bold text-sm shadow-sm cursor-pointer flex items-center gap-1"
           >
             <Plus size={16} /> Create New Venue
@@ -117,30 +137,50 @@ export default function OwnerVenuesDashboard() {
       {/* Main Container */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">My Listed Venues</h1>
-          <p className="text-sm text-body-text">Publish and manage your wedding halls, conference setups, and party spaces.</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            My Listed Venues
+          </h1>
+          <p className="text-sm text-body-text">
+            Publish and manage your wedding halls, conference setups, and party spaces.
+          </p>
         </div>
 
         {/* Status Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { label: 'Total Listings', value: stats.total, icon: <Home className="text-accent" /> },
-            { label: 'Approved & Active', value: stats.approved, icon: <CheckCircle2 className="text-green-600" /> },
-            { label: 'Pending Approvals', value: stats.pending, icon: <AlertTriangle className="text-amber-500" /> },
+            {
+              label: 'Approved & Active',
+              value: stats.approved,
+              icon: <CheckCircle2 className="text-green-600" />,
+            },
+            {
+              label: 'Pending Approvals',
+              value: stats.pending,
+              icon: <AlertTriangle className="text-amber-500" />,
+            },
           ].map((stat, i) => (
-            <div key={i} className="bg-surface border border-border-custom rounded-2xl p-6 shadow-xs flex justify-between items-center">
+            <div
+              key={i}
+              className="bg-surface border border-border-custom rounded-2xl p-6 shadow-xs flex justify-between items-center"
+            >
               <div>
-                <span className="block text-xs font-bold text-secondary-text uppercase">{stat.label}</span>
-                <span className="block text-3xl font-black text-primary-text mt-2">{stat.value}</span>
+                <span className="block text-xs font-bold text-secondary-text uppercase">
+                  {stat.label}
+                </span>
+                <span className="block text-3xl font-black text-primary-text mt-2">
+                  {stat.value}
+                </span>
               </div>
-              <div className="p-3 bg-card-bg rounded-xl border border-border-custom/25">{stat.icon}</div>
+              <div className="p-3 bg-card-bg rounded-xl border border-border-custom/25">
+                {stat.icon}
+              </div>
             </div>
           ))}
         </div>
 
         {/* Dashboard table */}
         <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
-          
           {errorMsg && (
             <div className="p-4 m-6 bg-red-50 border-l-4 border-red-500 rounded-xl text-xs text-red-700 font-medium">
               {errorMsg}
@@ -150,15 +190,20 @@ export default function OwnerVenuesDashboard() {
           {loading ? (
             <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
               <Loader2 size={36} className="animate-spin text-primary" />
-              <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing listings...</span>
+              <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+                Syncing listings...
+              </span>
             </div>
           ) : venues.length === 0 ? (
             <div className="p-20 text-center flex flex-col items-center gap-3">
               <span className="text-4xl">🏛️</span>
               <h2 className="text-base font-bold text-primary-text">No Venues Listed Yet</h2>
-              <p className="text-xs text-body-text max-w-sm">Create your first venue listing to start booking events and accepting secure payments.</p>
+              <p className="text-xs text-body-text max-w-sm">
+                Create your first venue listing to start booking events and accepting secure
+                payments.
+              </p>
               <button
-                onClick={() => window.location.href = '/owner/venues/new'}
+                onClick={() => (window.location.href = '/owner/venues/new')}
                 className="mt-4 bg-primary text-surface px-5 py-2.5 rounded-full font-bold text-xs shadow-xs hover:bg-primary/95 transition cursor-pointer"
               >
                 Get Started
@@ -180,25 +225,49 @@ export default function OwnerVenuesDashboard() {
                 </thead>
                 <tbody>
                   {venues.map((venue) => (
-                    <tr key={venue.id} className="border-b border-border-custom/10 hover:bg-card-bg/25 transition duration-150">
+                    <tr
+                      key={venue.id}
+                      className="border-b border-border-custom/10 hover:bg-card-bg/25 transition duration-150"
+                    >
                       <td className="px-6 py-4 flex items-center gap-3">
                         <div className="h-10 w-16 bg-border-custom/20 rounded-lg overflow-hidden flex-shrink-0">
-                          <img src={venue.featuredImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=150&q=80'} alt="Venue" className="h-full w-full object-cover" />
+                          <img
+                            src={
+                              venue.featuredImage ||
+                              'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=150&q=80'
+                            }
+                            alt="Venue"
+                            className="h-full w-full object-cover"
+                          />
                         </div>
                         <div>
-                          <span className="font-extrabold text-primary-text block">{venue.title}</span>
-                          <span className="text-[10px] text-body-text block">{venue.address.city}, {venue.address.state}</span>
+                          <span className="font-extrabold text-primary-text block">
+                            {venue.title}
+                          </span>
+                          <span className="text-[10px] text-body-text block">
+                            {venue.address.city}, {venue.address.state}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-semibold capitalize">{venue.venueType.replace('_', ' ')}</td>
-                      <td className="px-6 py-4 font-bold text-primary-text">{venue.capacity} guests</td>
-                      <td className="px-6 py-4 font-extrabold text-primary">₹{venue.pricing.pricePerDay.toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-4 font-semibold capitalize">
+                        {venue.venueType.replace('_', ' ')}
+                      </td>
+                      <td className="px-6 py-4 font-bold text-primary-text">
+                        {venue.capacity} guests
+                      </td>
+                      <td className="px-6 py-4 font-extrabold text-primary">
+                        ₹{venue.pricing.pricePerDay.toLocaleString('en-IN')}
+                      </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                          venue.approvalStatus === 'APPROVED' ? 'bg-green-50 border border-green-200 text-green-700' :
-                          venue.approvalStatus === 'PENDING' ? 'bg-amber-50 border border-amber-200 text-amber-700' :
-                          'bg-red-50 border border-red-200 text-red-700'
-                        }`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                            venue.approvalStatus === 'APPROVED'
+                              ? 'bg-green-50 border border-green-200 text-green-700'
+                              : venue.approvalStatus === 'PENDING'
+                                ? 'bg-amber-50 border border-amber-200 text-amber-700'
+                                : 'bg-red-50 border border-red-200 text-red-700'
+                          }`}
+                        >
                           {venue.approvalStatus}
                         </span>
                       </td>
@@ -217,7 +286,7 @@ export default function OwnerVenuesDashboard() {
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button
-                          onClick={() => window.location.href = `/owner/venues/edit/${venue.id}`}
+                          onClick={() => (window.location.href = `/owner/venues/edit/${venue.id}`)}
                           className="p-2 border border-border-custom/50 hover:border-primary/50 text-secondary-text hover:text-primary rounded-lg transition cursor-pointer"
                           title="Edit Listing"
                         >
@@ -237,9 +306,7 @@ export default function OwnerVenuesDashboard() {
               </table>
             </div>
           )}
-
         </div>
-
       </section>
 
       {/* Footer */}

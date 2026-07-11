@@ -96,7 +96,7 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/bookings`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ownerToken}`,
+        Authorization: `Bearer ${ownerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -125,7 +125,7 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/bookings`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -158,7 +158,7 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/bookings`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -187,11 +187,13 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/venues/${venueId}/calendar`);
     const json = await res.json();
     if (res.status !== 200) throw new Error('Calendar retrieval failed');
-    
-    const booked = json.data.booked.find(b => b.bookingNumber === bookingNumber);
+
+    const booked = json.data.booked.find((b) => b.bookingNumber === bookingNumber);
     console.log(`Found booking in calendar slots: ${booked ? 'YES' : 'NO'} (Expected: YES)`);
     if (!booked) throw new Error('Seeded booking not found in calendar schedule');
-    console.log(`Booking details matched: Date: ${booked.date} | Times: ${booked.startTime}-${booked.endTime}`);
+    console.log(
+      `Booking details matched: Date: ${booked.date} | Times: ${booked.startTime}-${booked.endTime}`
+    );
     console.log('✅ Venue calendar correctly reflects busy slots.');
   } catch (err) {
     console.error('❌ Calendar validation failed:', err.message);
@@ -202,10 +204,10 @@ async function runTests() {
   console.log('\n9. Fetching bookings requests queue (as Host/Owner)...');
   try {
     const res = await fetch(`${baseUrl}/api/v1/owner/bookings`, {
-      headers: { 'Authorization': `Bearer ${ownerToken}` },
+      headers: { Authorization: `Bearer ${ownerToken}` },
     });
     const json = await res.json();
-    const found = json.data.bookings.find(b => b.bookingNumber === bookingNumber);
+    const found = json.data.bookings.find((b) => b.bookingNumber === bookingNumber);
     console.log(`Found booking in Host queue: ${found ? 'YES' : 'NO'} (Expected: YES)`);
     if (!found) throw new Error('Booking not present in Owner request list');
     console.log('✅ Owner retrieval queue works.');
@@ -219,13 +221,14 @@ async function runTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/bookings/${bookingId}/approve`, {
       method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${ownerToken}` },
+      headers: { Authorization: `Bearer ${ownerToken}` },
     });
     const json = await res.json();
     console.log(`Status: ${res.status}`);
     if (res.status !== 200) throw new Error('Approval request failed');
     console.log(`Approved status: ${json.data.booking.bookingStatus} (Expected: OWNER_APPROVED)`);
-    if (json.data.booking.bookingStatus !== 'OWNER_APPROVED') throw new Error('Invalid status update');
+    if (json.data.booking.bookingStatus !== 'OWNER_APPROVED')
+      throw new Error('Invalid status update');
     console.log('✅ Owner approval succeeded.');
   } catch (err) {
     console.error('❌ Booking approval failed:', err.message);
@@ -238,7 +241,7 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/bookings/${bookingId}/cancel`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ cancellationReason: 'Change in event plans' }),
@@ -261,7 +264,7 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/admin/bookings/${bookingId}/override`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -274,8 +277,13 @@ async function runTests() {
     console.log(`Status: ${res.status}`);
     if (res.status !== 200) throw new Error('Admin override failed');
     console.log(`Overridden status: ${json.data.booking.bookingStatus} (Expected: REFUNDED)`);
-    console.log(`Overridden payment status: ${json.data.booking.paymentStatus} (Expected: REFUNDED)`);
-    if (json.data.booking.bookingStatus !== 'REFUNDED' || json.data.booking.paymentStatus !== 'REFUNDED') {
+    console.log(
+      `Overridden payment status: ${json.data.booking.paymentStatus} (Expected: REFUNDED)`
+    );
+    if (
+      json.data.booking.bookingStatus !== 'REFUNDED' ||
+      json.data.booking.paymentStatus !== 'REFUNDED'
+    ) {
       throw new Error('Admin override failed to apply status variables.');
     }
     console.log('✅ Admin dispute override succeeded.');

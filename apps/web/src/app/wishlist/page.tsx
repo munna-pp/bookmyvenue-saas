@@ -80,7 +80,7 @@ export default function WishlistPage() {
         },
       });
       if (res.ok) {
-        setWishlist(prev => prev.filter(item => item.venueId !== venueId));
+        setWishlist((prev) => prev.filter((item) => item.venueId !== venueId));
       } else {
         alert('Failed to remove item from wishlist.');
       }
@@ -94,17 +94,25 @@ export default function WishlistPage() {
       {/* Header */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
-          <a href="/" className="text-2xl font-bold text-primary tracking-tight">BookMyVenue</a>
+          <a href="/" className="text-2xl font-bold text-primary tracking-tight">
+            BookMyVenue
+          </a>
           <span className="bg-premium/10 text-premium text-xs px-2.5 py-0.5 rounded-full font-medium">
             Wishlist
           </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/bookings" className="text-secondary-text hover:text-primary transition font-medium text-sm">
+          <a
+            href="/bookings"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
             My Bookings
           </a>
           <NotificationBell />
-          <a href="/" className="bg-primary text-surface px-4 py-2 rounded-full hover:bg-primary/95 transition font-medium text-sm shadow-sm cursor-pointer text-center">
+          <a
+            href="/"
+            className="bg-primary text-surface px-4 py-2 rounded-full hover:bg-primary/95 transition font-medium text-sm shadow-sm cursor-pointer text-center"
+          >
             Back to Home
           </a>
         </nav>
@@ -114,8 +122,12 @@ export default function WishlistPage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">My Favorite Venues</h1>
-            <p className="text-sm text-secondary-text mt-1">Keep track of spaces you want to book later</p>
+            <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+              My Favorite Venues
+            </h1>
+            <p className="text-sm text-secondary-text mt-1">
+              Keep track of spaces you want to book later
+            </p>
           </div>
 
           {/* Sorters */}
@@ -144,7 +156,10 @@ export default function WishlistPage() {
             <span className="text-3xl">🔒</span>
             <p className="text-sm font-semibold text-danger mt-2">{error}</p>
             {!token && (
-              <a href="/login" className="inline-block mt-4 bg-primary text-surface px-6 py-2 rounded-xl font-bold text-sm">
+              <a
+                href="/login"
+                className="inline-block mt-4 bg-primary text-surface px-6 py-2 rounded-xl font-bold text-sm"
+              >
                 Login Now
               </a>
             )}
@@ -156,7 +171,10 @@ export default function WishlistPage() {
             <p className="text-sm text-secondary-text mt-1 max-w-sm mx-auto">
               Explore our premium venues and click the heart icon to save listings.
             </p>
-            <a href="/" className="inline-block mt-6 bg-primary text-surface px-6 py-2.5 rounded-full font-bold text-sm hover:scale-[1.02] transition shadow-md">
+            <a
+              href="/"
+              className="inline-block mt-6 bg-primary text-surface px-6 py-2.5 rounded-full font-bold text-sm hover:scale-[1.02] transition shadow-md"
+            >
               Browse Venues
             </a>
           </div>
@@ -192,9 +210,12 @@ export default function WishlistPage() {
                     <h3 className="font-extrabold text-lg text-primary-text leading-tight group-hover:text-primary transition">
                       {item.venue.title}
                     </h3>
-                    <p className="text-xs font-medium text-secondary-text mt-1">📍 {item.venue.city}</p>
+                    <p className="text-xs font-medium text-secondary-text mt-1">
+                      📍 {item.venue.city}
+                    </p>
                     <p className="text-[11px] text-muted-text mt-2 font-medium">
-                      Saved: {new Date(item.createdAt).toLocaleDateString(undefined, {
+                      Saved:{' '}
+                      {new Date(item.createdAt).toLocaleDateString(undefined, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -228,9 +249,15 @@ export default function WishlistPage() {
       <footer className="border-t border-border-custom bg-surface py-6 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-text">
         <p>© 2026 BookMyVenue Inc. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:underline">Privacy Policy</a>
-          <a href="#" className="hover:underline">Terms of Service</a>
-          <a href="#" className="hover:underline">Contact Support</a>
+          <a href="#" className="hover:underline">
+            Privacy Policy
+          </a>
+          <a href="#" className="hover:underline">
+            Terms of Service
+          </a>
+          <a href="#" className="hover:underline">
+            Contact Support
+          </a>
         </div>
       </footer>
     </div>

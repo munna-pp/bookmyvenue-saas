@@ -44,12 +44,14 @@ async function runSearchTests() {
 
   // 2. DATABASE PREPARATION (Setup venue coordinates in Mumbai)
   try {
-    const connVenues = await mongoose.createConnection(`${mongoUri}/bookmyvenue_venues`).asPromise();
+    const connVenues = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_venues`)
+      .asPromise();
     const venue = await connVenues.collection('venues').findOne({ isDeleted: false });
     if (!venue) {
       throw new Error('No reference venue found in database.');
     }
-    
+
     venueId = venue._id.toString();
     venueTitle = venue.title;
     venueSlug = venue.slug;
@@ -61,7 +63,7 @@ async function runSearchTests() {
         $set: {
           location: {
             type: 'Point',
-            coordinates: [72.8777, 19.0760], // [lng, lat] (Mumbai)
+            coordinates: [72.8777, 19.076], // [lng, lat] (Mumbai)
           },
           city: 'Mumbai',
           state: 'Maharashtra',
@@ -79,7 +81,9 @@ async function runSearchTests() {
     await connVenues.close();
 
     // Clear search history first
-    const connSearch = await mongoose.createConnection(`${mongoUri}/bookmyvenue_search`).asPromise();
+    const connSearch = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_search`)
+      .asPromise();
     await connSearch.collection('searchhistories').deleteMany({});
     await connSearch.close();
 
@@ -92,7 +96,9 @@ async function runSearchTests() {
   // 3. KEYWORD SEARCH
   try {
     console.log('\n--- Testing Keyword & Advanced Filters Search ---');
-    const res = await fetch(`${baseUrl}/api/v1/search/venues?q=${encodeURIComponent(venueTitle)}&city=Mumbai&minPrice=100000&maxPrice=200000&capacity=300&rating=4`);
+    const res = await fetch(
+      `${baseUrl}/api/v1/search/venues?q=${encodeURIComponent(venueTitle)}&city=Mumbai&minPrice=100000&maxPrice=200000&capacity=300&rating=4`
+    );
     const json = await res.json();
 
     if (res.status === 200 && json.data.venues.length > 0) {
@@ -116,16 +122,22 @@ async function runSearchTests() {
     console.log('\n--- Testing Suggestions Autocomplete ---');
     // Match partial title
     const partial = venueTitle.substring(0, 4);
-    const res = await fetch(`${baseUrl}/api/v1/search/suggestions?q=${encodeURIComponent(partial)}`);
+    const res = await fetch(
+      `${baseUrl}/api/v1/search/suggestions?q=${encodeURIComponent(partial)}`
+    );
     const json = await res.json();
 
     if (res.status === 200 && json.data.suggestions) {
       console.log(`✅ Autocomplete suggestions count: ${json.data.suggestions.length}`);
-      const venueMatched = json.data.suggestions.some((s) => s.type === 'venue' && s.text.toLowerCase().includes(partial.toLowerCase()));
+      const venueMatched = json.data.suggestions.some(
+        (s) => s.type === 'venue' && s.text.toLowerCase().includes(partial.toLowerCase())
+      );
       if (venueMatched) {
         console.log('✅ Autocomplete correctly suggested venue title matches.');
       } else {
-        console.warn('⚠️ Autocomplete had no direct venue title matches (might be due to tiny query term).');
+        console.warn(
+          '⚠️ Autocomplete had no direct venue title matches (might be due to tiny query term).'
+        );
       }
     } else {
       throw new Error(`Autocomplete suggestions failed: ${json.message}`);
@@ -143,7 +155,9 @@ async function runSearchTests() {
     const json = await res.json();
 
     if (res.status === 200 && json.data.venues.length > 0) {
-      console.log(`✅ Geospatial nearby query (within 25km) returned ${json.data.venues.length} venues.`);
+      console.log(
+        `✅ Geospatial nearby query (within 25km) returned ${json.data.venues.length} venues.`
+      );
       const matched = json.data.venues.some((v) => (v.id || v._id) === venueId);
       if (matched) {
         console.log('✅ Found seeded venue in geospatial nearby radius bounds.');
@@ -158,7 +172,9 @@ async function runSearchTests() {
     const resFar = await fetch(`${baseUrl}/api/v1/search/nearby?lat=10.0000&lng=10.0000&radius=25`);
     const jsonFar = await resFar.json();
     if (resFar.status === 200 && jsonFar.data.venues.length === 0) {
-      console.log('✅ Geospatial nearby query returned 0 matches for coordinates far away (correct).');
+      console.log(
+        '✅ Geospatial nearby query returned 0 matches for coordinates far away (correct).'
+      );
     } else {
       throw new Error('Nearby query returned results for coordinates far away!');
     }
@@ -175,19 +191,23 @@ async function runSearchTests() {
     const jsonPublic = await resPublic.json();
 
     if (resPublic.status === 200 && jsonPublic.data.venues.length > 0) {
-      console.log(`✅ Public guest recommendation fallback returned ${jsonPublic.data.venues.length} venues.`);
+      console.log(
+        `✅ Public guest recommendation fallback returned ${jsonPublic.data.venues.length} venues.`
+      );
     } else {
       throw new Error(`Guest recommendations query failed: ${jsonPublic.message}`);
     }
 
     // Authenticated recommendations
     const resAuth = await fetch(`${baseUrl}/api/v1/search/recommended?limit=3`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     const jsonAuth = await resAuth.json();
 
     if (resAuth.status === 200 && jsonAuth.data.venues.length > 0) {
-      console.log(`✅ Authenticated customer recommendation query returned ${jsonAuth.data.venues.length} venues.`);
+      console.log(
+        `✅ Authenticated customer recommendation query returned ${jsonAuth.data.venues.length} venues.`
+      );
     } else {
       throw new Error(`Auth recommendations query failed: ${jsonAuth.message}`);
     }
@@ -201,16 +221,22 @@ async function runSearchTests() {
     console.log('\n--- Testing Search History Log Verification ---');
     // Perform search with customer auth to create history
     await fetch(`${baseUrl}/api/v1/search/venues?q=mumbai&city=Mumbai&venueType=wedding_hall`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
 
     // Check history database directly
-    const connSearch = await mongoose.createConnection(`${mongoUri}/bookmyvenue_search`).asPromise();
-    const history = await connSearch.collection('searchhistories').findOne({ customerId: new mongoose.Types.ObjectId(customerId) });
+    const connSearch = await mongoose
+      .createConnection(`${mongoUri}/bookmyvenue_search`)
+      .asPromise();
+    const history = await connSearch
+      .collection('searchhistories')
+      .findOne({ customerId: new mongoose.Types.ObjectId(customerId) });
     await connSearch.close();
 
     if (history) {
-      console.log(`✅ Search history log verified: User ${history.customerId} searched for "${history.keyword}" with city "${history.filters.city}"`);
+      console.log(
+        `✅ Search history log verified: User ${history.customerId} searched for "${history.keyword}" with city "${history.filters.city}"`
+      );
     } else {
       throw new Error('Search history entry not created for authenticated search query!');
     }
@@ -225,7 +251,9 @@ async function runSearchTests() {
     const resTrending = await fetch(`${baseUrl}/api/v1/search/trending`);
     const jsonTrending = await resTrending.json();
     if (resTrending.status === 200 && jsonTrending.data.keywords) {
-      console.log(`✅ Trending endpoint returned ${jsonTrending.data.keywords.length} keywords and ${jsonTrending.data.venues.length} venues.`);
+      console.log(
+        `✅ Trending endpoint returned ${jsonTrending.data.keywords.length} keywords and ${jsonTrending.data.venues.length} venues.`
+      );
     } else {
       throw new Error(`Trending endpoint failed: ${jsonTrending.message}`);
     }
@@ -246,7 +274,7 @@ async function runSearchTests() {
   try {
     console.log('\n--- Testing Search Analytics Compilation ---');
     const res = await fetch(`${baseUrl}/api/v1/search/analytics`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
     const json = await res.json();
 

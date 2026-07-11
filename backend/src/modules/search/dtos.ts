@@ -23,18 +23,12 @@ export const searchQuerySchema = z.object({
     (val) => (val ? parseFloat(val as string) : undefined),
     z.number().min(0).max(5).optional()
   ),
-  amenities: z.preprocess(
-    (val) => {
-      if (typeof val === 'string') return val.split(',').map((s) => s.trim());
-      if (Array.isArray(val)) return val;
-      return undefined;
-    },
-    z.array(z.string()).optional()
-  ),
-  featured: z.preprocess(
-    (val) => val === 'true' || val === true,
-    z.boolean().optional()
-  ),
+  amenities: z.preprocess((val) => {
+    if (typeof val === 'string') return val.split(',').map((s) => s.trim());
+    if (Array.isArray(val)) return val;
+    return undefined;
+  }, z.array(z.string()).optional()),
+  featured: z.preprocess((val) => val === 'true' || val === true, z.boolean().optional()),
   date: z.string().optional(), // YYYY-MM-DD
   sortBy: z.string().optional(),
   page: z.preprocess(

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config/index.js';
 import { User } from '../auth/models/User.js';
@@ -17,15 +17,16 @@ import { validate } from '../../middleware/validate.js';
 import { protect, restrictTo } from '../../middleware/auth.js';
 import { createVenueSchema, updateVenueSchema } from './dtos.js';
 
+
 // Self-contained optional auth middleware to support draft previews for owners
-const optionalProtect = async (req: any, res: any, next: any) => {
+const optionalProtect = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let token: string | undefined;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
     if (token) {
-      const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+      const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
       const currentUser = await User.findById(decoded.userId);
       if (currentUser && currentUser.status === 'ACTIVE') {
         req.user = currentUser;

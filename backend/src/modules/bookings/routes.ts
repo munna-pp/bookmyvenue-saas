@@ -20,7 +20,13 @@ const router = Router();
 router.get('/venues/:id/calendar', getVenueCalendar);
 
 // Customer Bookings Endpoints
-router.post('/bookings', protect, restrictTo('customer'), validate(createBookingSchema), createBooking);
+router.post(
+  '/bookings',
+  protect,
+  restrictTo('customer'),
+  validate(createBookingSchema),
+  createBooking
+);
 router.get('/bookings/my', protect, restrictTo('customer'), getMyBookings);
 
 // Owner Bookings Endpoints
@@ -33,6 +39,12 @@ router.patch('/bookings/:id/cancel', protect, validate(cancelBookingSchema), can
 
 // Admin Bookings Endpoints
 router.get('/admin/bookings', protect, restrictTo('admin'), getAdminBookings);
-router.patch('/admin/bookings/:id/override', protect, restrictTo('admin'), validate(adminOverrideSchema), adminOverrideBooking);
+router.patch(
+  '/admin/bookings/:id/override',
+  protect,
+  restrictTo('admin'),
+  validate(adminOverrideSchema),
+  adminOverrideBooking
+);
 
 export default router;

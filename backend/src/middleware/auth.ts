@@ -96,7 +96,11 @@ export const restrictTo = (...roles: Array<'customer' | 'owner' | 'admin'>) => {
 /**
  * Middleware to optionally load current user from Authorization token if provided.
  */
-export const optionalProtect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const optionalProtect = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     let token: string | undefined;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

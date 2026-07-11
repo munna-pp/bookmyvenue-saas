@@ -21,7 +21,9 @@ export const initializeSocket = (server: HttpServer): Server => {
       const token = socket.handshake.auth?.token || socket.handshake.query?.token;
 
       if (!token) {
-        logger.warn(`🔌 Connection rejected: No authentication token found on socket: ${socket.id}`);
+        logger.warn(
+          `🔌 Connection rejected: No authentication token found on socket: ${socket.id}`
+        );
         return next(new Error('Authentication error: Token required'));
       }
 
@@ -48,10 +50,12 @@ export const initializeSocket = (server: HttpServer): Server => {
 
   io.on('connection', (socket: Socket) => {
     const { userId, role } = socket.data;
-    
+
     // Join a private room unique to this user ID
     socket.join(userId);
-    logger.info(`🔌 Socket.IO client connected: userId=${userId}, role=${role}, socketId=${socket.id}`);
+    logger.info(
+      `🔌 Socket.IO client connected: userId=${userId}, role=${role}, socketId=${socket.id}`
+    );
 
     socket.on('disconnect', () => {
       logger.info(`🔌 Socket.IO client disconnected: userId=${userId}, socketId=${socket.id}`);
@@ -64,7 +68,7 @@ export const initializeSocket = (server: HttpServer): Server => {
 /**
  * Emit a realtime notification event to a specific user
  */
-export const sendRealtimeNotification = (userId: string, notification: any): void => {
+export const sendRealtimeNotification = (userId: string, notification: unknown): void => {
   if (!io) {
     logger.warn('🔌 Socket.IO is not initialized. Cannot dispatch realtime notification.');
     return;

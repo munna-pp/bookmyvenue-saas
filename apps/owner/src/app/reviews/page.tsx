@@ -93,7 +93,7 @@ export default function OwnerReviewsDashboard() {
       const data = await res.json();
       if (res.ok) {
         // Clear reply text and reload
-        setReplyText(prev => ({ ...prev, [reviewId]: '' }));
+        setReplyText((prev) => ({ ...prev, [reviewId]: '' }));
         fetchOwnerReviews();
       } else {
         alert(data.message || 'Failed to submit response.');
@@ -105,10 +105,11 @@ export default function OwnerReviewsDashboard() {
 
   // Calculate quick metrics
   const totalReviewsCount = reviews.length;
-  const averageRating = totalReviewsCount > 0 
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviewsCount).toFixed(1)
-    : '0.0';
-  const pendingReplies = reviews.filter(r => !r.ownerReply).length;
+  const averageRating =
+    totalReviewsCount > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviewsCount).toFixed(1)
+      : '0.0';
+  const pendingReplies = reviews.filter((r) => !r.ownerReply).length;
 
   return (
     <div className="min-h-screen bg-background text-primary-text flex flex-col justify-between">
@@ -121,7 +122,10 @@ export default function OwnerReviewsDashboard() {
           </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/owner" className="text-secondary-text hover:text-primary transition font-medium text-sm">
+          <a
+            href="/owner"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
             Back to Host Dashboard
           </a>
           <NotificationBell />
@@ -131,8 +135,12 @@ export default function OwnerReviewsDashboard() {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">Host Reviews Panel</h1>
-          <p className="text-sm text-secondary-text mt-1">Review feedback and engage with your guests</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            Host Reviews Panel
+          </h1>
+          <p className="text-sm text-secondary-text mt-1">
+            Review feedback and engage with your guests
+          </p>
         </div>
 
         {/* Analytics Header Widgets */}
@@ -143,7 +151,9 @@ export default function OwnerReviewsDashboard() {
               <span className="text-4xl font-black text-primary-text">{averageRating}</span>
               <span className="text-amber-500 text-lg">★</span>
             </div>
-            <p className="text-[10px] text-muted-text mt-2 font-medium">Across all active reviews</p>
+            <p className="text-[10px] text-muted-text mt-2 font-medium">
+              Across all active reviews
+            </p>
           </div>
 
           <div className="bg-surface border border-border-custom p-6 rounded-3xl shadow-xs">
@@ -151,15 +161,21 @@ export default function OwnerReviewsDashboard() {
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-4xl font-black text-primary-text">{totalReviewsCount}</span>
             </div>
-            <p className="text-[10px] text-muted-text mt-2 font-medium">Verified customer submissions</p>
+            <p className="text-[10px] text-muted-text mt-2 font-medium">
+              Verified customer submissions
+            </p>
           </div>
 
           <div className="bg-surface border border-border-custom p-6 rounded-3xl shadow-xs">
-            <span className="text-xs font-bold text-secondary-text uppercase">Pending Responses</span>
+            <span className="text-xs font-bold text-secondary-text uppercase">
+              Pending Responses
+            </span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-4xl font-black text-danger">{pendingReplies}</span>
             </div>
-            <p className="text-[10px] text-muted-text mt-2 font-medium">Reviews requiring attention</p>
+            <p className="text-[10px] text-muted-text mt-2 font-medium">
+              Reviews requiring attention
+            </p>
           </div>
         </div>
 
@@ -177,7 +193,9 @@ export default function OwnerReviewsDashboard() {
           <div className="text-center py-24 border border-dashed border-border-custom rounded-3xl bg-surface/50">
             <span className="text-5xl">💬</span>
             <h3 className="text-lg font-bold mt-4">No Reviews Received</h3>
-            <p className="text-sm text-secondary-text mt-1">Feedback will appear here once bookings are completed.</p>
+            <p className="text-sm text-secondary-text mt-1">
+              Feedback will appear here once bookings are completed.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -215,7 +233,10 @@ export default function OwnerReviewsDashboard() {
                 {r.images && r.images.length > 0 && (
                   <div className="flex gap-2">
                     {r.images.map((img, idx) => (
-                      <div key={idx} className="h-12 w-16 rounded-lg overflow-hidden border border-border-custom/50 bg-muted">
+                      <div
+                        key={idx}
+                        className="h-12 w-16 rounded-lg overflow-hidden border border-border-custom/50 bg-muted"
+                      >
                         <img src={img} className="object-cover h-full w-full" />
                       </div>
                     ))}
@@ -226,7 +247,9 @@ export default function OwnerReviewsDashboard() {
                 {r.ownerReply ? (
                   <div className="bg-muted/30 border border-border-custom/40 rounded-2xl p-4 mt-2">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-primary uppercase">Your Response</span>
+                      <span className="text-[9px] font-black text-primary uppercase">
+                        Your Response
+                      </span>
                       <span className="text-[8px] text-muted-text uppercase font-bold">
                         {new Date(r.ownerReply.repliedAt).toLocaleDateString()}
                       </span>
@@ -236,13 +259,17 @@ export default function OwnerReviewsDashboard() {
                 ) : (
                   /* Reply Form */
                   <div className="border-t border-border-custom/30 pt-4 flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-secondary-text uppercase">Respond to review</label>
+                    <label className="text-[10px] font-bold text-secondary-text uppercase">
+                      Respond to review
+                    </label>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         placeholder="Type host response message..."
                         value={replyText[r._id] || ''}
-                        onChange={(e) => setReplyText(prev => ({ ...prev, [r._id]: e.target.value }))}
+                        onChange={(e) =>
+                          setReplyText((prev) => ({ ...prev, [r._id]: e.target.value }))
+                        }
                         className="flex-1 bg-card-bg border border-border-custom/50 px-4 py-2 rounded-xl text-xs outline-none"
                       />
                       <button
@@ -260,7 +287,9 @@ export default function OwnerReviewsDashboard() {
             {/* Pagination */}
             {pages > 1 && (
               <div className="flex justify-between items-center border-t border-border-custom/25 pt-4">
-                <span className="text-xs text-secondary-text font-medium">Page {page} of {pages}</span>
+                <span className="text-xs text-secondary-text font-medium">
+                  Page {page} of {pages}
+                </span>
                 <div className="flex gap-2">
                   <button
                     disabled={page <= 1}

@@ -55,12 +55,13 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/venues`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ownerToken}`,
+        Authorization: `Bearer ${ownerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         title: 'Ocean Breeze Luxury Villa',
-        description: 'Stunning cliffside beach villa featuring infinity pool, private beach path, and fully equipped catering kitchen.',
+        description:
+          'Stunning cliffside beach villa featuring infinity pool, private beach path, and fully equipped catering kitchen.',
         venueType: 'resort',
         category: 'Beach Escapes',
         address: {
@@ -79,7 +80,13 @@ async function runTests() {
           securityDeposit: 30000,
           cleaningFee: 5000,
         },
-        amenities: ['WiFi', 'Air Conditioning', 'Outdoor Lawn', 'Swimming Pool', 'Catering Kitchen'],
+        amenities: [
+          'WiFi',
+          'Air Conditioning',
+          'Outdoor Lawn',
+          'Swimming Pool',
+          'Catering Kitchen',
+        ],
         policies: ['Events must conclude by 11:30 PM', 'Pet friendly with deposit'],
         images: [
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -90,15 +97,15 @@ async function runTests() {
 
     const json = await res.json();
     console.log(`Status: ${res.status}`);
-    
+
     if (res.status !== 201) throw new Error(`Creation failed: ${JSON.stringify(json)}`);
     venueId = json.data.venue._id;
     venueSlug = json.data.venue.slug;
-    
+
     console.log('✅ Venue created successfully.');
     console.log(`ID: ${venueId} | Slug: ${venueSlug}`);
     console.log(`Initial Approval Status: ${json.data.venue.approvalStatus} (Expected: PENDING)`);
-    
+
     if (json.data.venue.approvalStatus !== 'PENDING') {
       throw new Error('Approval status is not PENDING');
     }
@@ -112,8 +119,8 @@ async function runTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/venues`);
     const json = await res.json();
-    
-    const found = json.data.venues.some(v => v._id === venueId);
+
+    const found = json.data.venues.some((v) => v._id === venueId);
     console.log(`Found in public browse: ${found ? 'YES' : 'NO'} (Expected: NO)`);
     if (found) {
       throw new Error('PENDING venue is visible in public browse.');
@@ -130,13 +137,13 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/venues?approvalStatus=PENDING`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
     });
     const json = await res.json();
-    
-    const found = json.data.venues.find(v => v._id === venueId);
+
+    const found = json.data.venues.find((v) => v._id === venueId);
     console.log(`Found in Admin queue: ${found ? 'YES' : 'NO'} (Expected: YES)`);
     if (!found) {
       throw new Error('Venue not listed in Admin queue.');
@@ -153,13 +160,13 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/admin/venues/${venueId}/approve`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
     });
     const json = await res.json();
     console.log(`Status: ${res.status}`);
-    
+
     if (res.status !== 200) throw new Error('Approval request failed');
     console.log(`Approved status: ${json.data.venue.approvalStatus} (Expected: APPROVED)`);
     if (json.data.venue.approvalStatus !== 'APPROVED') {
@@ -176,8 +183,8 @@ async function runTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/venues`);
     const json = await res.json();
-    
-    const found = json.data.venues.find(v => v._id === venueId);
+
+    const found = json.data.venues.find((v) => v._id === venueId);
     console.log(`Found in public browse: ${found ? 'YES' : 'NO'} (Expected: YES)`);
     if (!found) {
       throw new Error('Approved venue not showing in public browse.');
@@ -194,25 +201,30 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/venues/${venueId}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${ownerToken}`,
+        Authorization: `Bearer ${ownerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         pricing: {
           pricePerDay: 110000,
         },
-        capacity: 180,       // Update capacity
+        capacity: 180, // Update capacity
       }),
     });
     const json = await res.json();
     console.log(`Status: ${res.status}`);
-    
+
     if (res.status !== 200) throw new Error('Update failed');
-    console.log(`Updated pricing.pricePerDay: ₹${json.data.venue.pricing.pricePerDay} (Expected: 110000)`);
+    console.log(
+      `Updated pricing.pricePerDay: ₹${json.data.venue.pricing.pricePerDay} (Expected: 110000)`
+    );
     console.log(`Updated capacity: ${json.data.venue.capacity} (Expected: 180)`);
     console.log(`Approval Status reset: ${json.data.venue.approvalStatus} (Expected: PENDING)`);
-    
-    if (json.data.venue.pricing.pricePerDay !== 110000 || json.data.venue.approvalStatus !== 'PENDING') {
+
+    if (
+      json.data.venue.pricing.pricePerDay !== 110000 ||
+      json.data.venue.approvalStatus !== 'PENDING'
+    ) {
       throw new Error('Update values or approval status reset failed.');
     }
     console.log('✅ Venue details updated successfully.');
@@ -227,7 +239,7 @@ async function runTests() {
     await fetch(`${baseUrl}/api/v1/admin/venues/${venueId}/approve`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
     });
@@ -238,12 +250,12 @@ async function runTests() {
   }
 
   // 10. TEST MUTATION LOCK GUARD (TRYING TO UPDATE OWNER\'S VENUE AS OTHER USER)
-  console.log('\n10. Testing mutation lock guard (Updating owner\'s venue as Admin)...');
+  console.log("\n10. Testing mutation lock guard (Updating owner's venue as Admin)...");
   try {
     const res = await fetch(`${baseUrl}/api/v1/venues/${venueId}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -253,9 +265,9 @@ async function runTests() {
     const json = await res.json();
     console.log(`Status: ${res.status}`);
     console.log('Response:', JSON.stringify(json));
-    
+
     if (res.status !== 403) {
-      throw new Error('Admin was incorrectly allowed to mutate Owner\'s venue.');
+      throw new Error("Admin was incorrectly allowed to mutate Owner's venue.");
     }
     console.log('✅ Correctly blocked (Status 403).');
   } catch (err) {
@@ -269,13 +281,13 @@ async function runTests() {
     const res = await fetch(`${baseUrl}/api/v1/venues/${venueId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${ownerToken}`,
+        Authorization: `Bearer ${ownerToken}`,
         'Content-Type': 'application/json',
       },
     });
     const json = await res.json();
     console.log(`Status: ${res.status}`);
-    
+
     if (res.status !== 200) throw new Error('Soft delete request failed');
     console.log('✅ Venue deleted successfully.');
   } catch (err) {
@@ -288,8 +300,8 @@ async function runTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/venues`);
     const json = await res.json();
-    
-    const found = json.data.venues.some(v => v._id === venueId);
+
+    const found = json.data.venues.some((v) => v._id === venueId);
     console.log(`Found in public browse: ${found ? 'YES' : 'NO'} (Expected: NO)`);
     if (found) {
       throw new Error('Soft-deleted venue is still showing in public search list!');

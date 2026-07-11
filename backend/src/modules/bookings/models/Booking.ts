@@ -23,7 +23,16 @@ export interface IBooking extends Document {
   taxes: number;
   discount: number;
   totalAmount: number;
-  bookingStatus: 'PENDING' | 'OWNER_APPROVED' | 'OWNER_REJECTED' | 'PAYMENT_PENDING' | 'PAID' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED';
+  bookingStatus:
+    | 'PENDING'
+    | 'OWNER_APPROVED'
+    | 'OWNER_REJECTED'
+    | 'PAYMENT_PENDING'
+    | 'PAID'
+    | 'CONFIRMED'
+    | 'CANCELLED'
+    | 'COMPLETED'
+    | 'REFUNDED';
   paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
   statusHistory: {
     status: string;

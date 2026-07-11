@@ -17,8 +17,10 @@ const venueFormSchema = z.object({
   state: z.string().min(1, 'State is required'),
   zipCode: z.string().min(1, 'Zip code is required'),
   country: z.string().min(1, 'Country is required'),
-  latitude: z.string().refine(val => !isNaN(parseFloat(val)), 'Latitude must be a valid number'),
-  longitude: z.string().refine(val => !isNaN(parseFloat(val)), 'Longitude must be a valid number'),
+  latitude: z.string().refine((val) => !isNaN(parseFloat(val)), 'Latitude must be a valid number'),
+  longitude: z
+    .string()
+    .refine((val) => !isNaN(parseFloat(val)), 'Longitude must be a valid number'),
   capacity: z.number().int().min(1, 'Capacity must be at least 1 person'),
   pricePerDay: z.number().min(0, 'Price per day must be positive'),
   pricePerHalfDay: z.number().min(0).optional(),
@@ -45,9 +47,18 @@ export default function OwnerNewVenue() {
   const [newPolicy, setNewPolicy] = useState('');
 
   const amenityOptions = [
-    'Air Conditioning', 'WiFi', 'Projector', 'Valet Parking', 
-    'Catering Kitchen', 'Outdoor Lawn', 'AV Equipment', 'Swimming Pool',
-    'Bridal Suite', 'Sound System', 'Security Guard', 'Bar Setup'
+    'Air Conditioning',
+    'WiFi',
+    'Projector',
+    'Valet Parking',
+    'Catering Kitchen',
+    'Outdoor Lawn',
+    'AV Equipment',
+    'Swimming Pool',
+    'Bridal Suite',
+    'Sound System',
+    'Security Guard',
+    'Bar Setup',
   ];
 
   const {
@@ -61,25 +72,25 @@ export default function OwnerNewVenue() {
       capacity: 100,
       pricePerDay: 50000,
       publicationStatus: 'DRAFT',
-    }
+    },
   });
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   // Base64 file reader helper
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      Array.from(e.target.files).forEach(file => {
+      Array.from(e.target.files).forEach((file) => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
             const dataUrl = event.target.result as string;
-            setPreviews(prev => [...prev, dataUrl]);
-            setImages(prev => [...prev, dataUrl]);
+            setPreviews((prev) => [...prev, dataUrl]);
+            setImages((prev) => [...prev, dataUrl]);
           }
         };
         reader.readAsDataURL(file);
@@ -95,14 +106,14 @@ export default function OwnerNewVenue() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files) {
-      Array.from(e.dataTransfer.files).forEach(file => {
+      Array.from(e.dataTransfer.files).forEach((file) => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
             const dataUrl = event.target.result as string;
-            setPreviews(prev => [...prev, dataUrl]);
-            setImages(prev => [...prev, dataUrl]);
+            setPreviews((prev) => [...prev, dataUrl]);
+            setImages((prev) => [...prev, dataUrl]);
           }
         };
         reader.readAsDataURL(file);
@@ -117,7 +128,7 @@ export default function OwnerNewVenue() {
 
   const toggleAmenity = (amenity: string) => {
     if (selectedAmenities.includes(amenity)) {
-      setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
+      setSelectedAmenities(selectedAmenities.filter((a) => a !== amenity));
     } else {
       setSelectedAmenities([...selectedAmenities, amenity]);
     }
@@ -196,7 +207,6 @@ export default function OwnerNewVenue() {
       setTimeout(() => {
         window.location.href = '/owner/venues';
       }, 2000);
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong. Please check fields.');
     } finally {
@@ -209,11 +219,15 @@ export default function OwnerNewVenue() {
       {/* Header */}
       <header className="border-b border-border-custom bg-surface py-5 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <span className="text-2xl font-bold text-primary">Create Listing</span>
-        <a href="/owner/venues" className="text-xs font-bold text-secondary-text hover:text-primary transition">← Back to Listings</a>
+        <a
+          href="/owner/venues"
+          className="text-xs font-bold text-secondary-text hover:text-primary transition"
+        >
+          ← Back to Listings
+        </a>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 mt-10">
-        
         {/* Status Messages */}
         {errorMsg && (
           <div className="p-4 mb-6 bg-red-50 border-l-4 border-red-500 rounded-2xl text-xs text-red-700 font-semibold">
@@ -227,14 +241,20 @@ export default function OwnerNewVenue() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          
           {/* Section 1: Core details */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">1. Venue Overview</h3>
-            
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              1. Venue Overview
+            </h3>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="title">Venue Title</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="title"
+                >
+                  Venue Title
+                </label>
                 <input
                   id="title"
                   type="text"
@@ -242,11 +262,20 @@ export default function OwnerNewVenue() {
                   {...register('title')}
                   className={`w-full px-4 py-3 bg-card-bg border ${errors.title ? 'border-red-500' : 'border-border-custom/50'} rounded-xl text-xs focus:outline-none focus:border-primary`}
                 />
-                {errors.title && <span className="text-[10px] text-red-500 mt-1 block">{errors.title.message}</span>}
+                {errors.title && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.title.message}
+                  </span>
+                )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="venueType">Venue Type</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="venueType"
+                >
+                  Venue Type
+                </label>
                 <select
                   id="venueType"
                   {...register('venueType')}
@@ -263,11 +292,20 @@ export default function OwnerNewVenue() {
                   <option value="farm_house">Farm House</option>
                   <option value="event_space">Event Space</option>
                 </select>
-                {errors.venueType && <span className="text-[10px] text-red-500 mt-1 block">{errors.venueType.message}</span>}
+                {errors.venueType && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.venueType.message}
+                  </span>
+                )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="category">Category</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="category"
+                >
+                  Category
+                </label>
                 <input
                   id="category"
                   type="text"
@@ -275,11 +313,20 @@ export default function OwnerNewVenue() {
                   {...register('category')}
                   className={`w-full px-4 py-3 bg-card-bg border ${errors.category ? 'border-red-500' : 'border-border-custom/50'} rounded-xl text-xs focus:outline-none focus:border-primary`}
                 />
-                {errors.category && <span className="text-[10px] text-red-500 mt-1 block">{errors.category.message}</span>}
+                {errors.category && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.category.message}
+                  </span>
+                )}
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="description">Detailed Description</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="description"
+                >
+                  Detailed Description
+                </label>
                 <textarea
                   id="description"
                   rows={4}
@@ -287,18 +334,29 @@ export default function OwnerNewVenue() {
                   {...register('description')}
                   className={`w-full px-4 py-3 bg-card-bg border ${errors.description ? 'border-red-500' : 'border-border-custom/50'} rounded-xl text-xs focus:outline-none focus:border-primary`}
                 />
-                {errors.description && <span className="text-[10px] text-red-500 mt-1 block">{errors.description.message}</span>}
+                {errors.description && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.description.message}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           {/* Section 2: Address & Location coordinates */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">2. Address & Geolocation</h3>
-            
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              2. Address & Geolocation
+            </h3>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-3">
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="street">Street Address</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="street"
+                >
+                  Street Address
+                </label>
                 <input
                   id="street"
                   type="text"
@@ -309,7 +367,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="city">City</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="city"
+                >
+                  City
+                </label>
                 <input
                   id="city"
                   type="text"
@@ -320,7 +383,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="state">State</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="state"
+                >
+                  State
+                </label>
                 <input
                   id="state"
                   type="text"
@@ -331,7 +399,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="zipCode">Zip Code</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="zipCode"
+                >
+                  Zip Code
+                </label>
                 <input
                   id="zipCode"
                   type="text"
@@ -342,7 +415,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="country">Country</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="country"
+                >
+                  Country
+                </label>
                 <input
                   id="country"
                   type="text"
@@ -354,7 +432,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="latitude">Latitude (deg)</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="latitude"
+                >
+                  Latitude (deg)
+                </label>
                 <input
                   id="latitude"
                   type="text"
@@ -363,11 +446,20 @@ export default function OwnerNewVenue() {
                   {...register('latitude')}
                   className={`w-full px-4 py-3 bg-card-bg border ${errors.latitude ? 'border-red-500' : 'border-border-custom/50'} rounded-xl text-xs focus:outline-none focus:border-primary`}
                 />
-                {errors.latitude && <span className="text-[10px] text-red-500 mt-1 block">{errors.latitude.message}</span>}
+                {errors.latitude && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.latitude.message}
+                  </span>
+                )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="longitude">Longitude (deg)</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="longitude"
+                >
+                  Longitude (deg)
+                </label>
                 <input
                   id="longitude"
                   type="text"
@@ -376,7 +468,11 @@ export default function OwnerNewVenue() {
                   {...register('longitude')}
                   className={`w-full px-4 py-3 bg-card-bg border ${errors.longitude ? 'border-red-500' : 'border-border-custom/50'} rounded-xl text-xs focus:outline-none focus:border-primary`}
                 />
-                {errors.longitude && <span className="text-[10px] text-red-500 mt-1 block">{errors.longitude.message}</span>}
+                {errors.longitude && (
+                  <span className="text-[10px] text-red-500 mt-1 block">
+                    {errors.longitude.message}
+                  </span>
+                )}
               </div>
               <div className="text-[10px] text-muted-text flex items-center gap-1.5 pt-6 pl-2">
                 <MapPin size={14} className="text-accent" /> Coordinates required for Geo-queries
@@ -386,11 +482,18 @@ export default function OwnerNewVenue() {
 
           {/* Section 3: Capacity & Pricing */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">3. Capacity & Rental Pricing</h3>
-            
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              3. Capacity & Rental Pricing
+            </h3>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="capacity">Max Capacity (Guests)</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="capacity"
+                >
+                  Max Capacity (Guests)
+                </label>
                 <div className="relative">
                   <Users className="absolute left-3 top-3.5 text-muted-text" size={16} />
                   <input
@@ -403,7 +506,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="pricePerDay">Day Rate (₹)</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="pricePerDay"
+                >
+                  Day Rate (₹)
+                </label>
                 <div className="relative">
                   <IndianRupee className="absolute left-3 top-3.5 text-muted-text" size={16} />
                   <input
@@ -416,7 +524,12 @@ export default function OwnerNewVenue() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5" htmlFor="securityDeposit">Security Deposit (₹)</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1.5"
+                  htmlFor="securityDeposit"
+                >
+                  Security Deposit (₹)
+                </label>
                 <div className="relative">
                   <IndianRupee className="absolute left-3 top-3.5 text-muted-text" size={16} />
                   <input
@@ -433,10 +546,15 @@ export default function OwnerNewVenue() {
 
           {/* Section 4: Amenities selection */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">4. Amenities & Services</h3>
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              4. Amenities & Services
+            </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {amenityOptions.map((amenity) => (
-                <label key={amenity} className="flex items-center gap-2 text-xs font-semibold text-body-text cursor-pointer">
+                <label
+                  key={amenity}
+                  className="flex items-center gap-2 text-xs font-semibold text-body-text cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedAmenities.includes(amenity)}
@@ -451,8 +569,10 @@ export default function OwnerNewVenue() {
 
           {/* Section 5: Image Drag-and-Drop Uploader */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">5. Image Gallery Upload</h3>
-            
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              5. Image Gallery Upload
+            </h3>
+
             {/* Drag & Drop Zone */}
             <div
               onDragOver={handleDragOver}
@@ -461,8 +581,12 @@ export default function OwnerNewVenue() {
             >
               <Upload className="text-muted-text" size={32} />
               <div>
-                <span className="font-bold text-xs text-primary-text block">Drag and drop images here</span>
-                <span className="text-[10px] text-body-text block mt-1">Supports PNG, JPG, JPEG</span>
+                <span className="font-bold text-xs text-primary-text block">
+                  Drag and drop images here
+                </span>
+                <span className="text-[10px] text-body-text block mt-1">
+                  Supports PNG, JPG, JPEG
+                </span>
               </div>
               <label className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/20 transition cursor-pointer">
                 Select Files
@@ -480,8 +604,15 @@ export default function OwnerNewVenue() {
             {previews.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
                 {previews.map((preview, i) => (
-                  <div key={i} className="relative h-20 bg-border-custom/10 rounded-xl overflow-hidden border border-border-custom/50">
-                    <img src={preview} alt="upload preview" className="w-full h-full object-cover" />
+                  <div
+                    key={i}
+                    className="relative h-20 bg-border-custom/10 rounded-xl overflow-hidden border border-border-custom/50"
+                  >
+                    <img
+                      src={preview}
+                      alt="upload preview"
+                      className="w-full h-full object-cover"
+                    />
                     <button
                       type="button"
                       onClick={() => removeImage(i)}
@@ -497,8 +628,10 @@ export default function OwnerNewVenue() {
 
           {/* Section 6: Policy Rules */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 space-y-5 shadow-xs">
-            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">6. Policies & Guidelines</h3>
-            
+            <h3 className="text-lg font-bold border-b border-border-custom/25 pb-3">
+              6. Policies & Guidelines
+            </h3>
+
             {/* Add Policy */}
             <div className="flex gap-2">
               <input
@@ -521,7 +654,10 @@ export default function OwnerNewVenue() {
             {policiesList.length > 0 && (
               <ul className="space-y-2">
                 {policiesList.map((policy, i) => (
-                  <li key={i} className="flex justify-between items-center bg-card-bg/40 px-4 py-2 border border-border-custom/20 rounded-xl text-xs text-body-text">
+                  <li
+                    key={i}
+                    className="flex justify-between items-center bg-card-bg/40 px-4 py-2 border border-border-custom/20 rounded-xl text-xs text-body-text"
+                  >
                     <span>{policy}</span>
                     <button
                       type="button"
@@ -539,8 +675,12 @@ export default function OwnerNewVenue() {
           {/* Section 7: Publication visibility state */}
           <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 flex justify-between items-center shadow-xs">
             <div>
-              <h4 className="text-xs font-extrabold text-primary-text uppercase">Visibility State</h4>
-              <p className="text-[10px] text-body-text mt-0.5">Choose whether to list this venue as published immediately or save it as a draft.</p>
+              <h4 className="text-xs font-extrabold text-primary-text uppercase">
+                Visibility State
+              </h4>
+              <p className="text-[10px] text-body-text mt-0.5">
+                Choose whether to list this venue as published immediately or save it as a draft.
+              </p>
             </div>
             <select
               {...register('publicationStatus')}
@@ -566,9 +706,7 @@ export default function OwnerNewVenue() {
               'Save Listing Details'
             )}
           </button>
-
         </form>
-
       </div>
     </main>
   );

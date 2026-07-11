@@ -37,7 +37,7 @@ interface LeafletMapProps {
 
 export default function LeafletMap({
   markers,
-  center = [19.0760, 72.8777], // Mumbai default
+  center = [19.076, 72.8777], // Mumbai default
   zoom = 12,
   radiusCircle,
 }: LeafletMapProps) {
@@ -55,7 +55,8 @@ export default function LeafletMap({
 
       // OpenStreetMap Layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
       mapRef.current = map;
@@ -95,10 +96,8 @@ export default function LeafletMap({
         </div>
       `;
 
-      const marker = L.marker([m.lat, m.lng])
-        .bindPopup(popupHtml)
-        .addTo(layerGroup);
-      
+      const marker = L.marker([m.lat, m.lng]).bindPopup(popupHtml).addTo(layerGroup);
+
       leafletMarkers.push(marker);
     });
 
@@ -135,5 +134,7 @@ export default function LeafletMap({
     };
   }, []);
 
-  return <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: '8px' }} />;
+  return (
+    <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
+  );
 }

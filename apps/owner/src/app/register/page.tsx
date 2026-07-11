@@ -58,7 +58,6 @@ export default function OwnerRegister() {
       setTimeout(() => {
         window.location.href = '/owner/login';
       }, 2000);
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -71,9 +70,13 @@ export default function OwnerRegister() {
       <div className="w-full max-w-md bg-surface border border-border-custom rounded-3xl p-8 shadow-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight block mb-2">BMV Hosting</a>
+          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight block mb-2">
+            BMV Hosting
+          </a>
           <h1 className="text-xl font-extrabold text-primary-text">Register as a Host</h1>
-          <p className="text-sm text-body-text mt-1">Start listing your wedding halls, convention centers, or resorts</p>
+          <p className="text-sm text-body-text mt-1">
+            Start listing your wedding halls, convention centers, or resorts
+          </p>
         </div>
 
         {/* Status Alerts */}
@@ -91,7 +94,10 @@ export default function OwnerRegister() {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="name">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="name"
+            >
               Full Name / Company Name
             </label>
             <input
@@ -111,7 +117,10 @@ export default function OwnerRegister() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="email">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="email"
+            >
               Business Email Address
             </label>
             <input
@@ -131,7 +140,10 @@ export default function OwnerRegister() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="password">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="password"
+            >
               Password
             </label>
             <div className="relative">
@@ -153,7 +165,10 @@ export default function OwnerRegister() {
               </button>
             </div>
             {errors.password && (
-              <span id="password-error" className="block text-[11px] text-red-500 mt-1 font-semibold">
+              <span
+                id="password-error"
+                className="block text-[11px] text-red-500 mt-1 font-semibold"
+              >
                 {errors.password.message}
               </span>
             )}

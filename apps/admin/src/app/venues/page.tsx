@@ -9,7 +9,7 @@ export default function AdminVenuesQueue() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   // Stats
   const [stats, setStats] = useState({
     pending: 0,
@@ -19,7 +19,7 @@ export default function AdminVenuesQueue() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchAllVenues = async () => {
@@ -88,7 +88,6 @@ export default function AdminVenuesQueue() {
         approved: list.filter((v: Venue) => v.approvalStatus === 'APPROVED').length,
         rejected: list.filter((v: Venue) => v.approvalStatus === 'REJECTED').length,
       });
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to sync with approval database.');
     } finally {
@@ -150,7 +149,9 @@ export default function AdminVenuesQueue() {
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-primary">BMV Admin</span>
-          <span className="bg-info/10 text-info text-[10px] px-2 py-0.5 rounded-full font-bold">Control</span>
+          <span className="bg-info/10 text-info text-[10px] px-2 py-0.5 rounded-full font-bold">
+            Control
+          </span>
         </div>
         <nav className="flex items-center gap-4">
           <button
@@ -160,15 +161,21 @@ export default function AdminVenuesQueue() {
           >
             <RefreshCw size={14} />
           </button>
-          <a href="/" className="text-xs text-muted-text hover:text-primary transition font-medium">← Main Page</a>
+          <a href="/" className="text-xs text-muted-text hover:text-primary transition font-medium">
+            ← Main Page
+          </a>
         </nav>
       </header>
 
       {/* Main Container */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">Venue Approval Queue</h1>
-          <p className="text-sm text-body-text">Review and manage safety approvals, draft audits, and suspends.</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            Venue Approval Queue
+          </h1>
+          <p className="text-sm text-body-text">
+            Review and manage safety approvals, draft audits, and suspends.
+          </p>
         </div>
 
         {/* Stats */}
@@ -178,8 +185,13 @@ export default function AdminVenuesQueue() {
             { label: 'Approved Listings', value: stats.approved, color: 'border-l-primary' },
             { label: 'Rejected Listings', value: stats.rejected, color: 'border-l-accent' },
           ].map((stat, i) => (
-            <div key={i} className={`bg-card-bg border-l-4 ${stat.color} border border-border-custom rounded-2xl p-6 shadow-xs`}>
-              <span className="block text-xs font-semibold text-body-text uppercase">{stat.label}</span>
+            <div
+              key={i}
+              className={`bg-card-bg border-l-4 ${stat.color} border border-border-custom rounded-2xl p-6 shadow-xs`}
+            >
+              <span className="block text-xs font-semibold text-body-text uppercase">
+                {stat.label}
+              </span>
               <span className="block text-2xl font-black text-primary-text mt-2">{stat.value}</span>
             </div>
           ))}
@@ -196,13 +208,17 @@ export default function AdminVenuesQueue() {
           {loading ? (
             <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
               <Loader2 size={36} className="animate-spin text-primary" />
-              <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing Queue...</span>
+              <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+                Syncing Queue...
+              </span>
             </div>
           ) : venues.length === 0 ? (
             <div className="p-20 text-center flex flex-col items-center gap-3">
               <span className="text-4xl">📋</span>
               <h2 className="text-base font-bold text-primary-text">No Venues Found</h2>
-              <p className="text-xs text-body-text max-w-sm">No venue listing entries were found in the database system.</p>
+              <p className="text-xs text-body-text max-w-sm">
+                No venue listing entries were found in the database system.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -219,20 +235,37 @@ export default function AdminVenuesQueue() {
                 </thead>
                 <tbody>
                   {venues.map((venue) => (
-                    <tr key={venue.id} className="border-b border-border-custom/10 hover:bg-card-bg/25 transition duration-150">
+                    <tr
+                      key={venue.id}
+                      className="border-b border-border-custom/10 hover:bg-card-bg/25 transition duration-150"
+                    >
                       <td className="px-6 py-4">
-                        <span className="font-extrabold text-primary-text block">{venue.title}</span>
-                        <span className="text-[10px] text-body-text block">{venue.address.city}, {venue.address.state}</span>
+                        <span className="font-extrabold text-primary-text block">
+                          {venue.title}
+                        </span>
+                        <span className="text-[10px] text-body-text block">
+                          {venue.address.city}, {venue.address.state}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 font-semibold capitalize">{venue.venueType.replace('_', ' ')}</td>
-                      <td className="px-6 py-4 font-extrabold text-primary">₹{venue.pricing.pricePerDay.toLocaleString('en-IN')} / day</td>
-                      <td className="px-6 py-4 font-bold text-primary-text">{venue.capacity} guests</td>
+                      <td className="px-6 py-4 font-semibold capitalize">
+                        {venue.venueType.replace('_', ' ')}
+                      </td>
+                      <td className="px-6 py-4 font-extrabold text-primary">
+                        ₹{venue.pricing.pricePerDay.toLocaleString('en-IN')} / day
+                      </td>
+                      <td className="px-6 py-4 font-bold text-primary-text">
+                        {venue.capacity} guests
+                      </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                          venue.approvalStatus === 'APPROVED' ? 'bg-green-50 border border-green-200 text-green-700' :
-                          venue.approvalStatus === 'PENDING' ? 'bg-amber-50 border border-amber-200 text-amber-700' :
-                          'bg-red-50 border border-red-200 text-red-700'
-                        }`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                            venue.approvalStatus === 'APPROVED'
+                              ? 'bg-green-50 border border-green-200 text-green-700'
+                              : venue.approvalStatus === 'PENDING'
+                                ? 'bg-amber-50 border border-amber-200 text-amber-700'
+                                : 'bg-red-50 border border-red-200 text-red-700'
+                          }`}
+                        >
                           {venue.approvalStatus}
                         </span>
                       </td>

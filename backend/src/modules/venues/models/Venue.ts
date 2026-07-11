@@ -1,4 +1,4 @@
-import { Schema, Document, Types } from 'mongoose';
+import { Schema, Document, Types, Model } from 'mongoose';
 import { getModuleConnection } from '../../../config/db.js';
 
 export interface IVenue extends Document {
@@ -6,7 +6,16 @@ export interface IVenue extends Document {
   slug: string;
   title: string;
   description: string;
-  venueType: 'wedding_hall' | 'convention_center' | 'banquet_hall' | 'birthday_venue' | 'resort' | 'meeting_room' | 'sports_ground' | 'farm_house' | 'event_space';
+  venueType:
+    | 'wedding_hall'
+    | 'convention_center'
+    | 'banquet_hall'
+    | 'birthday_venue'
+    | 'resort'
+    | 'meeting_room'
+    | 'sports_ground'
+    | 'farm_house'
+    | 'event_space';
   category: string;
   address: {
     street: string;
@@ -214,14 +223,14 @@ venueSchema.pre('validate', async function (next) {
     let slugExists = true;
 
     // Access the Venue model from the document context
-    const VenueModel = this.constructor as any;
+    const VenueModel = this.constructor as Model<IVenue>;
 
     while (slugExists) {
-      const query: any = { slug: uniqueSlug, isDeleted: false };
+      const query: Record<string, unknown> = { slug: uniqueSlug, isDeleted: false };
       if (this._id) {
         query._id = { $ne: this._id };
       }
-      
+
       const existing = await VenueModel.findOne(query);
       if (!existing) {
         slugExists = false;

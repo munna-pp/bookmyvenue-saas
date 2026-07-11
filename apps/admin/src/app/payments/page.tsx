@@ -1,7 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Landmark, ArrowUpRight, ArrowDownRight, RefreshCw, Loader2, AlertCircle, Calendar, ShieldCheck, CornerUpLeft } from 'lucide-react';
+import {
+  Landmark,
+  ArrowUpRight,
+  ArrowDownRight,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  Calendar,
+  ShieldCheck,
+  CornerUpLeft,
+} from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Payment } from '@bookmyvenue/shared-types';
 
@@ -12,7 +22,7 @@ export default function AdminPaymentsPage() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchAllPayments = async () => {
@@ -46,7 +56,12 @@ export default function AdminPaymentsPage() {
   }, []);
 
   const handleRefund = async (id: string) => {
-    if (!window.confirm('Are you sure you want to trigger a full refund for this captured transaction? This will transition the booking status to REFUNDED and deduct host earnings.')) return;
+    if (
+      !window.confirm(
+        'Are you sure you want to trigger a full refund for this captured transaction? This will transition the booking status to REFUNDED and deduct host earnings.'
+      )
+    )
+      return;
     try {
       const res = await fetch(getApiUrl(`/api/v1/payments/${id}/refund`), {
         method: 'POST',
@@ -84,12 +99,26 @@ export default function AdminPaymentsPage() {
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-primary">BMV Admin</span>
-          <span className="bg-info/10 text-info text-[10px] px-2 py-0.5 rounded-full font-bold">Control</span>
+          <span className="bg-info/10 text-info text-[10px] px-2 py-0.5 rounded-full font-bold">
+            Control
+          </span>
         </div>
         <nav className="flex items-center gap-4">
-          <a href="/admin/venues" className="text-xs text-secondary-text hover:text-primary transition font-medium">Venues Queue</a>
-          <a href="/admin/bookings" className="text-xs text-secondary-text hover:text-primary transition font-medium">Bookings Queue</a>
-          <a href="/admin/payments" className="text-primary transition font-bold text-xs">Payments</a>
+          <a
+            href="/admin/venues"
+            className="text-xs text-secondary-text hover:text-primary transition font-medium"
+          >
+            Venues Queue
+          </a>
+          <a
+            href="/admin/bookings"
+            className="text-xs text-secondary-text hover:text-primary transition font-medium"
+          >
+            Bookings Queue
+          </a>
+          <a href="/admin/payments" className="text-primary transition font-bold text-xs">
+            Payments
+          </a>
           <button
             onClick={fetchAllPayments}
             className="p-2 border border-border-custom/50 hover:border-primary/50 text-secondary-text hover:text-primary rounded-xl transition cursor-pointer"
@@ -102,8 +131,12 @@ export default function AdminPaymentsPage() {
       {/* Main Container */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">System Payments & Refunds Dashboard</h1>
-          <p className="text-sm text-body-text">Audit captured transactions, verify gateway identifiers, and execute refund overrides.</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            System Payments & Refunds Dashboard
+          </h1>
+          <p className="text-sm text-body-text">
+            Audit captured transactions, verify gateway identifiers, and execute refund overrides.
+          </p>
         </div>
 
         {errorMsg && (
@@ -115,7 +148,9 @@ export default function AdminPaymentsPage() {
         {loading ? (
           <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
             <Loader2 size={36} className="animate-spin text-primary" />
-            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing Payments Queue...</span>
+            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+              Syncing Payments Queue...
+            </span>
           </div>
         ) : (
           <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
@@ -123,7 +158,9 @@ export default function AdminPaymentsPage() {
               <div className="p-20 text-center flex flex-col items-center gap-3">
                 <span className="text-4xl">💳</span>
                 <h3 className="font-bold text-sm text-primary-text">No Transactions Logged</h3>
-                <p className="text-xs text-body-text max-w-sm">Payments processed through Razorpay will be registered in this audit list.</p>
+                <p className="text-xs text-body-text max-w-sm">
+                  Payments processed through Razorpay will be registered in this audit list.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -144,22 +181,39 @@ export default function AdminPaymentsPage() {
                       const c = (p as any).customer;
                       const o = (p as any).owner;
                       const b = (p as any).booking;
-                      
+
                       return (
-                        <tr key={p.id} className="border-b border-border-custom/10 hover:bg-card-bg/25 transition">
+                        <tr
+                          key={p.id}
+                          className="border-b border-border-custom/10 hover:bg-card-bg/25 transition"
+                        >
                           <td className="px-6 py-4">
-                            <span className="font-extrabold text-primary-text block">{p.providerOrderId}</span>
-                            <span className="text-[10px] text-muted-text block mt-0.5">PayID: {p.providerPaymentId || 'N/A'}</span>
+                            <span className="font-extrabold text-primary-text block">
+                              {p.providerOrderId}
+                            </span>
+                            <span className="text-[10px] text-muted-text block mt-0.5">
+                              PayID: {p.providerPaymentId || 'N/A'}
+                            </span>
                           </td>
-                          <td className="px-6 py-4 font-bold text-secondary-text">#{b?.bookingNumber || 'N/A'}</td>
+                          <td className="px-6 py-4 font-bold text-secondary-text">
+                            #{b?.bookingNumber || 'N/A'}
+                          </td>
                           <td className="px-6 py-4">
-                            <span className="font-extrabold text-primary-text block">{c?.name || 'Jane Customer'}</span>
+                            <span className="font-extrabold text-primary-text block">
+                              {c?.name || 'Jane Customer'}
+                            </span>
                             <span className="text-[10px] text-body-text block">{c?.email}</span>
                           </td>
-                          <td className="px-6 py-4 font-medium text-body-text">{b?.venue?.title || 'Unknown Venue'}</td>
-                          <td className="px-6 py-4 font-black text-primary-text">₹{p.amount.toLocaleString('en-IN')}</td>
+                          <td className="px-6 py-4 font-medium text-body-text">
+                            {b?.venue?.title || 'Unknown Venue'}
+                          </td>
+                          <td className="px-6 py-4 font-black text-primary-text">
+                            ₹{p.amount.toLocaleString('en-IN')}
+                          </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(p.status)}`}>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(p.status)}`}
+                            >
                               {p.status}
                             </span>
                           </td>

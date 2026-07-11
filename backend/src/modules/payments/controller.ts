@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
-import { Payment } from './models/Payment.js';
+import { Payment, IPayment } from './models/Payment.js';
 import { Invoice } from './models/Invoice.js';
 import { Coupon } from './models/Coupon.js';
 import { WalletLedger } from './models/WalletLedger.js';
-import { Booking } from '../bookings/models/Booking.js';
-import { Venue } from '../venues/models/Venue.js';
-import { User } from '../auth/models/User.js';
+import { Booking, IBooking } from '../bookings/models/Booking.js';
+import { Venue, IVenue } from '../venues/models/Venue.js';
+import { User, IUser } from '../auth/models/User.js';
 import {
   razorpayInstance,
   verifySignature,
@@ -24,35 +24,43 @@ const processedWebhookEvents = new Set<string>();
 /**
  * Helper: dynamically stitch metadata for payments lists (in-memory join)
  */
-const populatePaymentsMetadata = async (payments: any[]): Promise<any[]> => {
+const populatePaymentsMetadata = async (payments: IPayment[]): Promise<unknown[]> => {
   if (payments.length === 0) return [];
 
-  const bookingIds = Array.from(new Set(payments.map(p => p.bookingId.toString())));
-  const customerIds = Array.from(new Set(payments.map(p => p.customerId.toString())));
-  const ownerIds = Array.from(new Set(payments.map(p => p.ownerId.toString())));
+  const bookingIds = Array.from(new Set(payments.map((p) => p.bookingId.toString())));
+  const customerIds = Array.from(new Set(payments.map((p) => p.customerId.toString())));
+  const ownerIds = Array.from(new Set(payments.map((p) => p.ownerId.toString())));
 
-  const [bookings, customers, owners] = await Promise.all([
+  const [bookingsRaw, customers, owners] = await Promise.all([
     Booking.find({ _id: { $in: bookingIds } }).lean(),
-    User.find({ _id: { $in: customerIds } }).select('name email').lean(),
-    User.find({ _id: { $in: ownerIds } }).select('name email').lean(),
+    User.find({ _id: { $in: customerIds } })
+      .select('name email')
+      .lean(),
+    User.find({ _id: { $in: ownerIds } })
+      .select('name email')
+      .lean(),
   ]);
 
-  // Stitch venue info onto bookings
-  const venueIds = Array.from(new Set(bookings.map((b: any) => b.venueId.toString())));
-  const venues = await Venue.find({ _id: { $in: venueIds } }).select('title slug address').lean();
+  const bookings = bookingsRaw as unknown as IBooking[];
 
-  const venueMap = new Map(venues.map(v => [v._id.toString(), v]));
+  // Stitch venue info onto bookings
+  const venueIds = Array.from(new Set(bookings.map((b) => b.venueId.toString())));
+  const venues = await Venue.find({ _id: { $in: venueIds } })
+    .select('title slug address')
+    .lean();
+
+  const venueMap = new Map(venues.map((v) => [v._id.toString(), v]));
   const bookingMap = new Map(
-    bookings.map((b: any) => {
-      b.venue = venueMap.get(b.venueId.toString()) || null;
+    bookings.map((b) => {
+      (b as unknown as Record<string, unknown>).venue = venueMap.get(b.venueId.toString()) || null;
       return [b._id.toString(), b];
     })
   );
 
-  const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
-  const ownerMap = new Map(owners.map(o => [o._id.toString(), o]));
+  const customerMap = new Map(customers.map((c) => [c._id.toString(), c]));
+  const ownerMap = new Map(owners.map((o) => [o._id.toString(), o]));
 
-  return payments.map(p => {
+  return payments.map((p) => {
     const pObj = p.toObject ? p.toObject() : p;
     pObj.booking = bookingMap.get(p.bookingId.toString()) || null;
     pObj.customer = customerMap.get(p.customerId.toString()) || null;
@@ -93,7 +101,12 @@ export const applyCoupon = async (
 
     // Minimum amount check
     if (booking.subtotal < coupon.minimumBookingAmount) {
-      next(new AppError(`Minimum booking amount of INR ${coupon.minimumBookingAmount} required for this coupon`, 400));
+      next(
+        new AppError(
+          `Minimum booking amount of INR ${coupon.minimumBookingAmount} required for this coupon`,
+          400
+        )
+      );
       return;
     }
 
@@ -127,7 +140,12 @@ export const applyCoupon = async (
       discount = booking.subtotal;
     }
 
-    const newTotal = booking.subtotal + booking.taxes + (booking.pricingSnapshot.cleaningFee || 0) + (booking.pricingSnapshot.securityDeposit || 0) - discount;
+    const newTotal =
+      booking.subtotal +
+      booking.taxes +
+      (booking.pricingSnapshot.cleaningFee || 0) +
+      (booking.pricingSnapshot.securityDeposit || 0) -
+      discount;
 
     res.status(200).json({
       status: 'success',
@@ -162,7 +180,12 @@ export const createOrder = async (
     }
 
     if (booking.bookingStatus !== 'OWNER_APPROVED' && booking.bookingStatus !== 'PAYMENT_PENDING') {
-      next(new AppError(`Booking must be OWNER_APPROVED to proceed with payment. Current status: ${booking.bookingStatus}`, 400));
+      next(
+        new AppError(
+          `Booking must be OWNER_APPROVED to proceed with payment. Current status: ${booking.bookingStatus}`,
+          400
+        )
+      );
       return;
     }
 
@@ -173,15 +196,20 @@ export const createOrder = async (
     const deposit = booking.pricingSnapshot.securityDeposit || 0;
 
     let discount = 0;
-    let couponId = undefined;
+    let couponId: Types.ObjectId | undefined = undefined;
 
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
-      if (coupon && new Date() <= new Date(coupon.expiryDate) && subtotal >= coupon.minimumBookingAmount && coupon.usageCount < coupon.usageLimit) {
+      if (
+        coupon &&
+        new Date() <= new Date(coupon.expiryDate) &&
+        subtotal >= coupon.minimumBookingAmount &&
+        coupon.usageCount < coupon.usageLimit
+      ) {
         const userId = booking.customerId.toString();
         const userUsageCount = coupon.userUsage?.get(userId) || 0;
         if (userUsageCount < coupon.perUserLimit) {
-          couponId = coupon._id as any;
+          couponId = coupon._id as Types.ObjectId;
           if (coupon.type === 'FLAT') {
             discount = coupon.discount;
           } else if (coupon.type === 'PERCENTAGE') {
@@ -207,7 +235,9 @@ export const createOrder = async (
 
     let rzpOrder;
     try {
-      const isPlaceholder = config.RAZORPAY_KEY_ID.includes('placeholder') || config.RAZORPAY_KEY_ID.startsWith('your-');
+      const isPlaceholder =
+        config.RAZORPAY_KEY_ID.includes('placeholder') ||
+        config.RAZORPAY_KEY_ID.startsWith('your-');
       if (isPlaceholder) {
         rzpOrder = {
           id: `order_mock_${Math.floor(100000 + Math.random() * 900000)}`,
@@ -217,7 +247,7 @@ export const createOrder = async (
       } else {
         rzpOrder = await razorpayInstance.orders.create(options);
       }
-    } catch (rzpErr: any) {
+    } catch (rzpErr) {
       logger.error('Razorpay Order Creation Failed:', rzpErr);
       next(new AppError('Failed to initialize payment gateway order.', 502));
       return;
@@ -368,7 +398,7 @@ export const verifyPayment = async (
       status: 'PAID',
     });
 
-    payment.invoiceId = invoice._id as any;
+    payment.invoiceId = invoice._id as Types.ObjectId;
     await payment.save();
 
     // 5. Transition booking state to CONFIRMED
@@ -487,7 +517,7 @@ export const handleWebhook = async (
             status: 'PAID',
           });
 
-          payment.invoiceId = invoice._id as any;
+          payment.invoiceId = invoice._id as Types.ObjectId;
           await payment.save();
 
           booking.bookingStatus = 'CONFIRMED';
@@ -635,9 +665,13 @@ export const refundPayment = async (
     // Using test credentials, this triggers a test mode refund mock
     try {
       if (payment.providerPaymentId) {
-        const isPlaceholder = config.RAZORPAY_KEY_ID.includes('placeholder') || config.RAZORPAY_KEY_ID.startsWith('your-');
+        const isPlaceholder =
+          config.RAZORPAY_KEY_ID.includes('placeholder') ||
+          config.RAZORPAY_KEY_ID.startsWith('your-');
         if (isPlaceholder) {
-          logger.info(`Mocking successful Razorpay refund for payment: ${payment.providerPaymentId}`);
+          logger.info(
+            `Mocking successful Razorpay refund for payment: ${payment.providerPaymentId}`
+          );
         } else {
           await razorpayInstance.payments.refund(payment.providerPaymentId, {
             amount: Math.round(payment.amount * 100),
@@ -645,10 +679,12 @@ export const refundPayment = async (
           });
         }
       }
-    } catch (rzpErr: any) {
+    } catch (rzpErr) {
       logger.error('Razorpay Refund dispatch failed:', rzpErr);
       // Let it slide in test mode placeholders if needed, but in standard flow throw gateway error
-      const isPlaceholder = config.RAZORPAY_KEY_ID.includes('placeholder') || config.RAZORPAY_KEY_ID.startsWith('your-');
+      const isPlaceholder =
+        config.RAZORPAY_KEY_ID.includes('placeholder') ||
+        config.RAZORPAY_KEY_ID.startsWith('your-');
       if (!isPlaceholder) {
         next(new AppError('Razorpay payment refund dispatch failed.', 502));
         return;
@@ -712,7 +748,7 @@ export const getInvoicePdf = async (
       $or: [
         { _id: Types.ObjectId.isValid(id) ? id : null },
         { invoiceNumber: id },
-        { bookingId: Types.ObjectId.isValid(id) ? id : null }
+        { bookingId: Types.ObjectId.isValid(id) ? id : null },
       ],
     });
 
@@ -730,11 +766,19 @@ export const getInvoicePdf = async (
     const targetVenue = booking ? await Venue.findById(booking.venueId).lean() : null;
 
     // Generate PDF stream buffer via pdfkit
-    const pdfBuffer = await generateInvoicePdfBuffer(invoice, booking || {}, customer || {}, targetVenue || {});
+    const pdfBuffer = await generateInvoicePdfBuffer(
+      invoice,
+      (booking || {}) as unknown as IBooking,
+      (customer || {}) as unknown as IUser,
+      (targetVenue || {}) as unknown as IVenue
+    );
 
     // Send PDF stream file
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice_${invoice.invoiceNumber}.pdf`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=invoice_${invoice.invoiceNumber}.pdf`
+    );
     res.setHeader('Content-Length', pdfBuffer.length);
     res.end(pdfBuffer);
   } catch (error) {

@@ -64,7 +64,6 @@ export default function AdminLogin() {
       setTimeout(() => {
         window.location.href = '/admin';
       }, 1500);
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong. Please check your credentials.');
     } finally {
@@ -77,7 +76,9 @@ export default function AdminLogin() {
       <div className="w-full max-w-md bg-surface border border-border-custom rounded-3xl p-8 shadow-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <a href="/admin" className="text-2xl font-bold text-primary tracking-tight block mb-2">BMV Console</a>
+          <a href="/admin" className="text-2xl font-bold text-primary tracking-tight block mb-2">
+            BMV Console
+          </a>
           <h1 className="text-xl font-extrabold text-primary-text">Admin Portal</h1>
           <p className="text-sm text-body-text mt-1">Authorized access only</p>
         </div>
@@ -97,7 +98,10 @@ export default function AdminLogin() {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="email">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="email"
+            >
               Admin Username/Email
             </label>
             <input
@@ -117,7 +121,10 @@ export default function AdminLogin() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="password">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="password"
+            >
               Secure Key (Password)
             </label>
             <div className="relative">
@@ -139,7 +146,10 @@ export default function AdminLogin() {
               </button>
             </div>
             {errors.password && (
-              <span id="password-error" className="block text-[11px] text-red-500 mt-1 font-semibold">
+              <span
+                id="password-error"
+                className="block text-[11px] text-red-500 mt-1 font-semibold"
+              >
                 {errors.password.message}
               </span>
             )}

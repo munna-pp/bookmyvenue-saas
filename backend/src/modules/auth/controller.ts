@@ -42,7 +42,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       isVerified: false,
       verificationToken,
     });
-    
+
     // Emit USER_REGISTERED event
     const { authEvents } = await import('../../utils/events.js');
     authEvents.emit('USER_REGISTERED', newUser);

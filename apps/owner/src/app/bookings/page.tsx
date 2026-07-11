@@ -1,7 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Clock, Users, Check, X, ShieldAlert, AlertCircle, FileText, Info, Loader2, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Users,
+  Check,
+  X,
+  ShieldAlert,
+  AlertCircle,
+  FileText,
+  Info,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  User,
+} from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Booking } from '@bookmyvenue/shared-types';
 
@@ -18,7 +32,7 @@ export default function OwnerBookingsDashboard() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchOwnerBookings = async () => {
@@ -61,7 +75,7 @@ export default function OwnerBookingsDashboard() {
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
-      
+
       fetchOwnerBookings();
     } catch (err: any) {
       alert(`Approval error: ${err.message}`);
@@ -123,7 +137,10 @@ export default function OwnerBookingsDashboard() {
   const getBookingsOnDate = (date: Date) => {
     const dateStr = date.toISOString().slice(0, 10);
     return bookings.filter(
-      b => new Date(b.eventDate).toISOString().slice(0, 10) === dateStr && b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'OWNER_REJECTED'
+      (b) =>
+        new Date(b.eventDate).toISOString().slice(0, 10) === dateStr &&
+        b.bookingStatus !== 'CANCELLED' &&
+        b.bookingStatus !== 'OWNER_REJECTED'
     );
   };
 
@@ -132,7 +149,7 @@ export default function OwnerBookingsDashboard() {
 
   // Filter bookings to display
   const filteredBookings = selectedDate
-    ? bookings.filter(b => new Date(b.eventDate).toISOString().slice(0, 10) === selectedDate)
+    ? bookings.filter((b) => new Date(b.eventDate).toISOString().slice(0, 10) === selectedDate)
     : bookings;
 
   const getStatusBadgeClass = (status: string) => {
@@ -156,20 +173,35 @@ export default function OwnerBookingsDashboard() {
       {/* Top Navbar */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
         <div className="flex items-center gap-2">
-          <a href="/owner/venues" className="text-2xl font-bold text-primary tracking-tight">BMV Owner</a>
-          <span className="bg-premium/10 text-premium text-[10px] px-2 py-0.5 rounded-full font-bold">Hosting</span>
+          <a href="/owner/venues" className="text-2xl font-bold text-primary tracking-tight">
+            BMV Owner
+          </a>
+          <span className="bg-premium/10 text-premium text-[10px] px-2 py-0.5 rounded-full font-bold">
+            Hosting
+          </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/owner/venues" className="text-secondary-text hover:text-primary transition font-semibold text-xs">My Venues</a>
-          <a href="/owner/bookings" className="text-primary transition font-bold text-xs">Reservations</a>
+          <a
+            href="/owner/venues"
+            className="text-secondary-text hover:text-primary transition font-semibold text-xs"
+          >
+            My Venues
+          </a>
+          <a href="/owner/bookings" className="text-primary transition font-bold text-xs">
+            Reservations
+          </a>
         </nav>
       </header>
 
       {/* Main Container */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">Reservations Manager</h1>
-          <p className="text-sm text-body-text">Audit incoming booking query requests, manage busy calendars, and accept payments.</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            Reservations Manager
+          </h1>
+          <p className="text-sm text-body-text">
+            Audit incoming booking query requests, manage busy calendars, and accept payments.
+          </p>
         </div>
 
         {errorMsg && (
@@ -181,25 +213,42 @@ export default function OwnerBookingsDashboard() {
         {loading ? (
           <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
             <Loader2 size={36} className="animate-spin text-primary" />
-            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing Reservations...</span>
+            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+              Syncing Reservations...
+            </span>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
             {/* Interactive Grid Calendar */}
             <div className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs flex flex-col gap-4">
               <div className="flex justify-between items-center pb-2 border-b border-border-custom/10">
-                <h3 className="font-extrabold text-sm text-primary-text flex items-center gap-1.5"><CalendarIcon size={16} className="text-primary" /> Calendar View</h3>
+                <h3 className="font-extrabold text-sm text-primary-text flex items-center gap-1.5">
+                  <CalendarIcon size={16} className="text-primary" /> Calendar View
+                </h3>
                 <div className="flex items-center gap-1">
-                  <button onClick={prevMonth} className="p-1.5 hover:bg-card-bg rounded-lg border border-border-custom/50"><ChevronLeft size={14} /></button>
-                  <span className="text-xs font-bold px-2">{currentMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                  <button onClick={nextMonth} className="p-1.5 hover:bg-card-bg rounded-lg border border-border-custom/50"><ChevronRight size={14} /></button>
+                  <button
+                    onClick={prevMonth}
+                    className="p-1.5 hover:bg-card-bg rounded-lg border border-border-custom/50"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <span className="text-xs font-bold px-2">
+                    {currentMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </span>
+                  <button
+                    onClick={nextMonth}
+                    className="p-1.5 hover:bg-card-bg rounded-lg border border-border-custom/50"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
                 </div>
               </div>
 
               {/* Grid Header */}
               <div className="grid grid-cols-7 text-center text-[10px] font-bold text-secondary-text pb-1 uppercase tracking-wider">
-                {weekDays.map(d => <span key={d}>{d}</span>)}
+                {weekDays.map((d) => (
+                  <span key={d}>{d}</span>
+                ))}
               </div>
 
               {/* Grid Days */}
@@ -218,16 +267,20 @@ export default function OwnerBookingsDashboard() {
                       key={idx}
                       onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                       className={`h-9 w-full rounded-lg text-xs font-bold flex flex-col items-center justify-center relative cursor-pointer transition ${
-                        isSelected ? 'bg-primary text-surface border border-primary' :
-                        isToday ? 'bg-info/10 text-info border border-info/20' :
-                        'bg-card-bg border border-border-custom/30 text-primary-text hover:border-primary/50'
+                        isSelected
+                          ? 'bg-primary text-surface border border-primary'
+                          : isToday
+                            ? 'bg-info/10 text-info border border-info/20'
+                            : 'bg-card-bg border border-border-custom/30 text-primary-text hover:border-primary/50'
                       }`}
                     >
                       <span>{day.getDate()}</span>
-                      
+
                       {/* Booking indicators */}
                       {hasBookings && (
-                        <span className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-surface' : 'bg-red-500'}`}></span>
+                        <span
+                          className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-surface' : 'bg-red-500'}`}
+                        ></span>
                       )}
                     </button>
                   );
@@ -237,7 +290,12 @@ export default function OwnerBookingsDashboard() {
               {selectedDate && (
                 <div className="pt-2 text-[10px] font-bold text-accent flex justify-between items-center bg-card-bg/40 p-2 border border-border-custom/30 rounded-xl">
                   <span>Selected Date: {new Date(selectedDate).toLocaleDateString()}</span>
-                  <button onClick={() => setSelectedDate(null)} className="text-secondary-text hover:text-red-500 uppercase tracking-widest text-[8px]">Clear Filter</button>
+                  <button
+                    onClick={() => setSelectedDate(null)}
+                    className="text-secondary-text hover:text-red-500 uppercase tracking-widest text-[8px]"
+                  >
+                    Clear Filter
+                  </button>
                 </div>
               )}
             </div>
@@ -246,7 +304,9 @@ export default function OwnerBookingsDashboard() {
             <div className="lg:col-span-2 space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-bold text-primary-text">
-                  {selectedDate ? `Reservations for ${new Date(selectedDate).toLocaleDateString()}` : 'All Bookings Queue'}
+                  {selectedDate
+                    ? `Reservations for ${new Date(selectedDate).toLocaleDateString()}`
+                    : 'All Bookings Queue'}
                 </h2>
                 <span className="text-[10px] font-bold bg-card-bg border border-border-custom px-3 py-1 rounded-full text-secondary-text">
                   {filteredBookings.length} entries found
@@ -257,7 +317,9 @@ export default function OwnerBookingsDashboard() {
                 <div className="p-20 text-center flex flex-col items-center gap-3 bg-surface border border-border-custom rounded-3xl">
                   <span className="text-4xl">📋</span>
                   <h3 className="font-bold text-sm text-primary-text">No Reservations Found</h3>
-                  <p className="text-xs text-body-text max-w-sm">No reservations matching current selections were registered in system database.</p>
+                  <p className="text-xs text-body-text max-w-sm">
+                    No reservations matching current selections were registered in system database.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -265,18 +327,28 @@ export default function OwnerBookingsDashboard() {
                     const c = (booking as any).customer;
                     const v = (booking as any).venue;
                     const isPending = booking.bookingStatus === 'PENDING';
-                    
+
                     return (
-                      <div key={booking.id} className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs space-y-4 flex flex-col">
-                        
+                      <div
+                        key={booking.id}
+                        className="bg-surface border border-border-custom rounded-3xl p-6 shadow-xs space-y-4 flex flex-col"
+                      >
                         {/* Header Details */}
                         <div className="flex justify-between items-start border-b border-border-custom/15 pb-3">
                           <div>
-                            <span className="text-[9px] font-extrabold text-primary uppercase tracking-widest">#{booking.bookingNumber}</span>
-                            <h4 className="font-extrabold text-sm text-primary-text mt-0.5">{v?.title || 'Unknown Venue'}</h4>
-                            <p className="text-[10px] text-body-text mt-1 capitalize">{booking.eventType} event • {booking.guestCount} guests</p>
+                            <span className="text-[9px] font-extrabold text-primary uppercase tracking-widest">
+                              #{booking.bookingNumber}
+                            </span>
+                            <h4 className="font-extrabold text-sm text-primary-text mt-0.5">
+                              {v?.title || 'Unknown Venue'}
+                            </h4>
+                            <p className="text-[10px] text-body-text mt-1 capitalize">
+                              {booking.eventType} event • {booking.guestCount} guests
+                            </p>
                           </div>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(booking.bookingStatus)}`}>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(booking.bookingStatus)}`}
+                          >
                             {booking.bookingStatus.replace('_', ' ')}
                           </span>
                         </div>
@@ -284,41 +356,69 @@ export default function OwnerBookingsDashboard() {
                         {/* Customer & Time fields */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-body-text">
                           <div className="flex items-center gap-2">
-                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary"><User size={14} /></div>
+                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary">
+                              <User size={14} />
+                            </div>
                             <div>
-                              <span className="block text-[8px] text-muted-text font-bold uppercase">Customer</span>
-                              <span className="font-bold text-primary-text">{c?.name || 'Seeded Client'}</span>
+                              <span className="block text-[8px] text-muted-text font-bold uppercase">
+                                Customer
+                              </span>
+                              <span className="font-bold text-primary-text">
+                                {c?.name || 'Seeded Client'}
+                              </span>
                               <span className="block text-[10px] text-muted-text">{c?.email}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary"><CalendarIcon size={14} /></div>
+                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary">
+                              <CalendarIcon size={14} />
+                            </div>
                             <div>
-                              <span className="block text-[8px] text-muted-text font-bold uppercase">Event Date</span>
-                              <span className="font-bold text-primary-text">{new Date(booking.eventDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
+                              <span className="block text-[8px] text-muted-text font-bold uppercase">
+                                Event Date
+                              </span>
+                              <span className="font-bold text-primary-text">
+                                {new Date(booking.eventDate).toLocaleDateString('en-US', {
+                                  dateStyle: 'medium',
+                                })}
+                              </span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary"><Clock size={14} /></div>
+                            <div className="p-2 bg-card-bg border border-border-custom/25 rounded-lg text-primary">
+                              <Clock size={14} />
+                            </div>
                             <div>
-                              <span className="block text-[8px] text-muted-text font-bold uppercase">Time slot</span>
-                              <span className="font-bold text-primary-text">{booking.startTime} - {booking.endTime}</span>
+                              <span className="block text-[8px] text-muted-text font-bold uppercase">
+                                Time slot
+                              </span>
+                              <span className="font-bold text-primary-text">
+                                {booking.startTime} - {booking.endTime}
+                              </span>
                             </div>
                           </div>
                         </div>
 
                         {booking.specialRequests && (
                           <div className="bg-card-bg border border-border-custom/20 rounded-2xl p-3.5 text-xs">
-                            <span className="block text-[8px] text-muted-text font-extrabold uppercase mb-1">Special guidelines requested:</span>
-                            <p className="text-body-text leading-relaxed italic">"{booking.specialRequests}"</p>
+                            <span className="block text-[8px] text-muted-text font-extrabold uppercase mb-1">
+                              Special guidelines requested:
+                            </span>
+                            <p className="text-body-text leading-relaxed italic">
+                              "{booking.specialRequests}"
+                            </p>
                           </div>
                         )}
 
                         {/* Action buttons or details */}
                         <div className="pt-3 border-t border-border-custom/10 flex justify-between items-center">
                           <div>
-                            <span className="text-[10px] text-muted-text block uppercase">Revenue invoice</span>
-                            <span className="font-black text-sm text-primary-text">₹{booking.totalAmount.toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] text-muted-text block uppercase">
+                              Revenue invoice
+                            </span>
+                            <span className="font-black text-sm text-primary-text">
+                              ₹{booking.totalAmount.toLocaleString('en-IN')}
+                            </span>
                           </div>
 
                           <div className="flex gap-2">
@@ -338,7 +438,8 @@ export default function OwnerBookingsDashboard() {
                                 </button>
                               </>
                             ) : (
-                              booking.bookingStatus === 'CANCELLED' && booking.cancellationReason && (
+                              booking.bookingStatus === 'CANCELLED' &&
+                              booking.cancellationReason && (
                                 <div className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded-xl flex items-center gap-1 max-w-sm">
                                   <Info size={14} className="flex-shrink-0" />
                                   <span>Reason: {booking.cancellationReason}</span>
@@ -347,14 +448,12 @@ export default function OwnerBookingsDashboard() {
                             )}
                           </div>
                         </div>
-
                       </div>
                     );
                   })}
                 </div>
               )}
             </div>
-
           </div>
         )}
       </section>

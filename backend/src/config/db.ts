@@ -16,7 +16,7 @@ export const getModuleConnection = (moduleName: string): Connection => {
   // Extract base URI (remove trailing slashes) and append database name
   const baseUri = config.MONGODB_URI.replace(/\/+$/, '');
   const dbName = `bookmyvenue_${moduleName}`;
-  
+
   // Format URI correctly for connection (handle query params if present)
   let dbUri = `${baseUri}/${dbName}`;
   if (baseUri.includes('?')) {
@@ -48,7 +48,16 @@ export const getModuleConnection = (moduleName: string): Connection => {
  * Initialize all module connections sequentially at startup
  */
 export const initializeDatabases = async (): Promise<void> => {
-  const modules = ['auth', 'users', 'venues', 'bookings', 'payments', 'notifications', 'reviews', 'search'];
+  const modules = [
+    'auth',
+    'users',
+    'venues',
+    'bookings',
+    'payments',
+    'notifications',
+    'reviews',
+    'search',
+  ];
   for (const moduleName of modules) {
     getModuleConnection(moduleName);
   }
@@ -59,9 +68,7 @@ export const initializeDatabases = async (): Promise<void> => {
  */
 export const closeDatabases = async (): Promise<void> => {
   logger.info('Closing all MongoDB connections...');
-  await Promise.all(
-    Object.values(connections).map((connection) => connection.close())
-  );
+  await Promise.all(Object.values(connections).map((connection) => connection.close()));
   logger.info('All MongoDB connections closed.');
 };
 
@@ -73,4 +80,3 @@ export const getDatabaseHealth = (): boolean => {
   if (values.length === 0) return false;
   return values.every((conn) => conn.readyState === 1);
 };
-

@@ -17,14 +17,32 @@ import { applyCouponSchema, createOrderSchema, verifyPaymentSchema } from './dto
 const router = Router();
 
 // Coupons endpoints
-router.post('/coupons/apply', protect, restrictTo('customer'), validate(applyCouponSchema), applyCoupon);
+router.post(
+  '/coupons/apply',
+  protect,
+  restrictTo('customer'),
+  validate(applyCouponSchema),
+  applyCoupon
+);
 
 // Webhook endpoint (Public, verified internally)
 router.post('/payments/webhook', handleWebhook);
 
 // Payments endpoints
-router.post('/payments/create-order', protect, restrictTo('customer'), validate(createOrderSchema), createOrder);
-router.post('/payments/verify', protect, restrictTo('customer'), validate(verifyPaymentSchema), verifyPayment);
+router.post(
+  '/payments/create-order',
+  protect,
+  restrictTo('customer'),
+  validate(createOrderSchema),
+  createOrder
+);
+router.post(
+  '/payments/verify',
+  protect,
+  restrictTo('customer'),
+  validate(verifyPaymentSchema),
+  verifyPayment
+);
 router.get('/payments/my', protect, restrictTo('customer'), getMyPayments);
 router.get('/payments/wallet', protect, restrictTo('owner'), getWalletBalance);
 

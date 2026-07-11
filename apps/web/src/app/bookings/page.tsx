@@ -2,7 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Calendar, Clock, Users, Loader2, AlertCircle, Trash2, ShieldCheck, HelpCircle, Check, Info, FileText } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Users,
+  Loader2,
+  AlertCircle,
+  Trash2,
+  ShieldCheck,
+  HelpCircle,
+  Check,
+  Info,
+  FileText,
+} from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { Booking } from '@bookmyvenue/shared-types';
 
@@ -23,7 +35,7 @@ export default function CustomerBookingsHistory() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('accessToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchMyBookings = async () => {
@@ -110,10 +122,19 @@ export default function CustomerBookingsHistory() {
     <main className="min-h-screen bg-background text-primary-text flex flex-col justify-between">
       {/* Top Navbar */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
-        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
+        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">
+          BookMyVenue
+        </a>
         <nav className="flex items-center gap-6">
-          <a href="/venues" className="text-secondary-text hover:text-primary transition font-semibold text-xs">Browse Venues</a>
-          <a href="/bookings" className="text-primary transition font-bold text-xs">My Bookings</a>
+          <a
+            href="/venues"
+            className="text-secondary-text hover:text-primary transition font-semibold text-xs"
+          >
+            Browse Venues
+          </a>
+          <a href="/bookings" className="text-primary transition font-bold text-xs">
+            My Bookings
+          </a>
           <NotificationBell />
         </nav>
       </header>
@@ -121,8 +142,12 @@ export default function CustomerBookingsHistory() {
       {/* Main Container */}
       <section className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">My Booking Queries</h1>
-          <p className="text-sm text-body-text">Track your reservation queries, invoice breakdown snapshots, and host reviews.</p>
+          <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+            My Booking Queries
+          </h1>
+          <p className="text-sm text-body-text">
+            Track your reservation queries, invoice breakdown snapshots, and host reviews.
+          </p>
         </div>
 
         {errorMsg && (
@@ -134,15 +159,20 @@ export default function CustomerBookingsHistory() {
         {loading ? (
           <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
             <Loader2 size={36} className="animate-spin text-primary" />
-            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing History...</span>
+            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+              Syncing History...
+            </span>
           </div>
         ) : bookings.length === 0 ? (
           <div className="p-20 text-center flex flex-col items-center gap-4 bg-surface border border-border-custom rounded-3xl">
             <span className="text-5xl">📅</span>
             <h2 className="text-base font-bold text-primary-text">No Reservations Found</h2>
-            <p className="text-xs text-body-text max-w-md">You haven't requested any venue bookings yet. Explore our luxury wedding halls and party spaces to get started.</p>
+            <p className="text-xs text-body-text max-w-md">
+              You haven't requested any venue bookings yet. Explore our luxury wedding halls and
+              party spaces to get started.
+            </p>
             <button
-              onClick={() => window.location.href = '/venues'}
+              onClick={() => (window.location.href = '/venues')}
               className="bg-primary text-surface px-6 py-3 rounded-full text-xs font-bold shadow-xs hover:bg-primary/95 transition cursor-pointer"
             >
               Browse Venues
@@ -150,7 +180,6 @@ export default function CustomerBookingsHistory() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
             {/* Bookings List */}
             <div className="lg:col-span-2 space-y-4">
               {bookings.map((booking) => {
@@ -165,35 +194,56 @@ export default function CustomerBookingsHistory() {
                     <div className="flex gap-4 items-start">
                       <div className="h-14 w-20 bg-border-custom/20 rounded-xl overflow-hidden flex-shrink-0">
                         <img
-                          src={v?.featuredImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=150&q=80'}
+                          src={
+                            v?.featuredImage ||
+                            'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=150&q=80'
+                          }
                           alt="Venue"
                           className="h-full w-full object-cover"
                         />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-primary block uppercase tracking-wide">#{booking.bookingNumber}</span>
-                        <h3 className="font-extrabold text-sm text-primary-text mt-0.5">{v?.title || 'Unknown Venue'}</h3>
+                        <span className="text-[10px] font-bold text-primary block uppercase tracking-wide">
+                          #{booking.bookingNumber}
+                        </span>
+                        <h3 className="font-extrabold text-sm text-primary-text mt-0.5">
+                          {v?.title || 'Unknown Venue'}
+                        </h3>
                         <p className="text-[10px] text-body-text flex items-center gap-1 mt-1">
                           <Calendar size={12} className="text-muted-text" />
-                          <span>{new Date(booking.eventDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
+                          <span>
+                            {new Date(booking.eventDate).toLocaleDateString('en-US', {
+                              dateStyle: 'medium',
+                            })}
+                          </span>
                           <Clock size={12} className="text-muted-text ml-2" />
-                          <span>{booking.startTime} - {booking.endTime}</span>
+                          <span>
+                            {booking.startTime} - {booking.endTime}
+                          </span>
                         </p>
                       </div>
                     </div>
 
                     <div className="flex flex-row md:flex-col justify-between w-full md:w-auto items-center md:items-end gap-3 pt-3 md:pt-0 border-t border-border-custom/10 md:border-none">
                       <div>
-                        <span className="text-[10px] text-muted-text block text-left md:text-right">Total Invoice</span>
-                        <span className="font-black text-sm text-primary-text">₹{booking.totalAmount.toLocaleString('en-IN')}</span>
+                        <span className="text-[10px] text-muted-text block text-left md:text-right">
+                          Total Invoice
+                        </span>
+                        <span className="font-black text-sm text-primary-text">
+                          ₹{booking.totalAmount.toLocaleString('en-IN')}
+                        </span>
                       </div>
                       <div className="flex gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(booking.bookingStatus)}`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getStatusBadgeClass(booking.bookingStatus)}`}
+                        >
                           {booking.bookingStatus.replace('_', ' ')}
                         </span>
-                        
+
                         {/* Cancellation trigger */}
-                        {['PENDING', 'OWNER_APPROVED', 'PAYMENT_PENDING'].includes(booking.bookingStatus) && (
+                        {['PENDING', 'OWNER_APPROVED', 'PAYMENT_PENDING'].includes(
+                          booking.bookingStatus
+                        ) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -216,29 +266,42 @@ export default function CustomerBookingsHistory() {
             <div className="sticky top-6 flex flex-col gap-6">
               {selectedBooking && (
                 <div className="bg-surface border border-border-custom rounded-3xl p-6 md:p-8 shadow-xs space-y-6 flex flex-col">
-                  
                   {/* Title & Status */}
                   <div className="border-b border-border-custom/25 pb-4">
-                    <span className="text-[10px] font-bold text-muted-text tracking-widest block uppercase">Selected Booking Details</span>
-                    <h3 className="font-black text-base text-primary-text mt-1">#{(selectedBooking as any).bookingNumber}</h3>
-                    <p className="text-xs text-body-text font-bold mt-1">{(selectedBooking as any).venue?.title}</p>
+                    <span className="text-[10px] font-bold text-muted-text tracking-widest block uppercase">
+                      Selected Booking Details
+                    </span>
+                    <h3 className="font-black text-base text-primary-text mt-1">
+                      #{(selectedBooking as any).bookingNumber}
+                    </h3>
+                    <p className="text-xs text-body-text font-bold mt-1">
+                      {(selectedBooking as any).venue?.title}
+                    </p>
                     <div className="flex flex-wrap items-center gap-3 mt-3">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusBadgeClass(selectedBooking.bookingStatus)}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusBadgeClass(selectedBooking.bookingStatus)}`}
+                      >
                         {selectedBooking.bookingStatus.replace('_', ' ')}
                       </span>
-                      
+
                       {selectedBooking.bookingStatus === 'OWNER_APPROVED' && (
                         <button
-                          onClick={() => window.location.href = `/checkout/${selectedBooking.id}`}
+                          onClick={() => (window.location.href = `/checkout/${selectedBooking.id}`)}
                           className="bg-primary hover:bg-primary/95 text-surface text-[10px] font-bold px-4 py-1.5 rounded-full transition shadow-xs cursor-pointer"
                         >
                           💳 Pay Securely
                         </button>
                       )}
 
-                      {['CONFIRMED', 'COMPLETED', 'PAID'].includes(selectedBooking.bookingStatus) && (
+                      {['CONFIRMED', 'COMPLETED', 'PAID'].includes(
+                        selectedBooking.bookingStatus
+                      ) && (
                         <button
-                          onClick={() => window.open(getApiUrl(`/api/v1/invoices/download/${selectedBooking.id}`))}
+                          onClick={() =>
+                            window.open(
+                              getApiUrl(`/api/v1/invoices/download/${selectedBooking.id}`)
+                            )
+                          }
                           className="bg-info hover:bg-info/90 text-surface text-[10px] font-bold px-4 py-1.5 rounded-full transition shadow-xs cursor-pointer flex items-center gap-1"
                         >
                           📄 Invoice PDF
@@ -250,44 +313,75 @@ export default function CustomerBookingsHistory() {
                   {/* Summary Parameter Table */}
                   <div className="space-y-3.5 text-xs text-body-text">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-secondary-text flex items-center gap-1.5"><Calendar size={14} /> Date</span>
-                      <span className="font-extrabold text-primary-text">{new Date(selectedBooking.eventDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}</span>
+                      <span className="font-semibold text-secondary-text flex items-center gap-1.5">
+                        <Calendar size={14} /> Date
+                      </span>
+                      <span className="font-extrabold text-primary-text">
+                        {new Date(selectedBooking.eventDate).toLocaleDateString('en-US', {
+                          dateStyle: 'medium',
+                        })}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-secondary-text flex items-center gap-1.5"><Clock size={14} /> Duration</span>
-                      <span className="font-extrabold text-primary-text">{selectedBooking.startTime} to {selectedBooking.endTime}</span>
+                      <span className="font-semibold text-secondary-text flex items-center gap-1.5">
+                        <Clock size={14} /> Duration
+                      </span>
+                      <span className="font-extrabold text-primary-text">
+                        {selectedBooking.startTime} to {selectedBooking.endTime}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-secondary-text flex items-center gap-1.5"><Users size={14} /> Guests Count</span>
-                      <span className="font-extrabold text-primary-text">{selectedBooking.guestCount} people</span>
+                      <span className="font-semibold text-secondary-text flex items-center gap-1.5">
+                        <Users size={14} /> Guests Count
+                      </span>
+                      <span className="font-extrabold text-primary-text">
+                        {selectedBooking.guestCount} people
+                      </span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-border-custom/10">
-                      <span className="font-semibold text-secondary-text flex items-center gap-1.5"><FileText size={14} /> Event Scope</span>
-                      <span className="font-extrabold text-primary-text capitalize">{selectedBooking.eventType}</span>
+                      <span className="font-semibold text-secondary-text flex items-center gap-1.5">
+                        <FileText size={14} /> Event Scope
+                      </span>
+                      <span className="font-extrabold text-primary-text capitalize">
+                        {selectedBooking.eventType}
+                      </span>
                     </div>
 
                     {/* Invoice detail */}
                     <div className="pt-2 space-y-2">
                       <div className="flex justify-between text-[11px]">
                         <span>Venue Rental (Snapshot)</span>
-                        <span className="font-bold text-primary-text">₹{selectedBooking.pricingSnapshot.pricePerDay.toLocaleString('en-IN')}</span>
+                        <span className="font-bold text-primary-text">
+                          ₹{selectedBooking.pricingSnapshot.pricePerDay.toLocaleString('en-IN')}
+                        </span>
                       </div>
                       <div className="flex justify-between text-[11px]">
                         <span>Taxes (18% GST)</span>
-                        <span className="font-bold text-primary-text">₹{selectedBooking.taxes.toLocaleString('en-IN')}</span>
+                        <span className="font-bold text-primary-text">
+                          ₹{selectedBooking.taxes.toLocaleString('en-IN')}
+                        </span>
                       </div>
-                      {selectedBooking.pricingSnapshot.cleaningFee && selectedBooking.pricingSnapshot.cleaningFee > 0 && (
-                        <div className="flex justify-between text-[11px]">
-                          <span>Cleaning Fee</span>
-                          <span className="font-bold text-primary-text">₹{selectedBooking.pricingSnapshot.cleaningFee.toLocaleString('en-IN')}</span>
-                        </div>
-                      )}
-                      {selectedBooking.pricingSnapshot.securityDeposit && selectedBooking.pricingSnapshot.securityDeposit > 0 && (
-                        <div className="flex justify-between text-[11px] pb-2 border-b border-border-custom/5">
-                          <span>Security Deposit (Refundable)</span>
-                          <span className="font-bold text-primary-text">₹{selectedBooking.pricingSnapshot.securityDeposit.toLocaleString('en-IN')}</span>
-                        </div>
-                      )}
+                      {selectedBooking.pricingSnapshot.cleaningFee &&
+                        selectedBooking.pricingSnapshot.cleaningFee > 0 && (
+                          <div className="flex justify-between text-[11px]">
+                            <span>Cleaning Fee</span>
+                            <span className="font-bold text-primary-text">
+                              ₹{selectedBooking.pricingSnapshot.cleaningFee.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
+                      {selectedBooking.pricingSnapshot.securityDeposit &&
+                        selectedBooking.pricingSnapshot.securityDeposit > 0 && (
+                          <div className="flex justify-between text-[11px] pb-2 border-b border-border-custom/5">
+                            <span>Security Deposit (Refundable)</span>
+                            <span className="font-bold text-primary-text">
+                              ₹
+                              {selectedBooking.pricingSnapshot.securityDeposit.toLocaleString(
+                                'en-IN'
+                              )}
+                            </span>
+                          </div>
+                        )}
                       <div className="flex justify-between text-xs font-black text-primary pt-1">
                         <span>Total amount</span>
                         <span>₹{selectedBooking.totalAmount.toLocaleString('en-IN')}</span>
@@ -297,7 +391,9 @@ export default function CustomerBookingsHistory() {
 
                   {/* Status Timeline step-indicators */}
                   <div className="pt-4 border-t border-border-custom/25 space-y-4">
-                    <h4 className="text-xs font-bold text-primary-text flex items-center gap-1.5">📊 Status Activity Log</h4>
+                    <h4 className="text-xs font-bold text-primary-text flex items-center gap-1.5">
+                      📊 Status Activity Log
+                    </h4>
                     <div className="relative pl-6 border-l border-border-custom/50 ml-2 space-y-4 pt-1">
                       {selectedBooking.statusHistory.map((hist, idx) => (
                         <div key={idx} className="relative">
@@ -306,19 +402,25 @@ export default function CustomerBookingsHistory() {
                             <span className="bg-surface h-1 w-1 rounded-full"></span>
                           </span>
                           <div>
-                            <span className="text-[10px] font-black text-primary-text uppercase tracking-wider">{hist.status.replace('_', ' ')}</span>
-                            <span className="block text-[8px] text-muted-text mt-0.5">{new Date(hist.updatedAt).toLocaleString()}</span>
-                            {hist.notes && <p className="text-[10px] text-body-text mt-1 bg-card-bg p-2 rounded-xl border border-border-custom/25 leading-relaxed">{hist.notes}</p>}
+                            <span className="text-[10px] font-black text-primary-text uppercase tracking-wider">
+                              {hist.status.replace('_', ' ')}
+                            </span>
+                            <span className="block text-[8px] text-muted-text mt-0.5">
+                              {new Date(hist.updatedAt).toLocaleString()}
+                            </span>
+                            {hist.notes && (
+                              <p className="text-[10px] text-body-text mt-1 bg-card-bg p-2 rounded-xl border border-border-custom/25 leading-relaxed">
+                                {hist.notes}
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-
                 </div>
               )}
             </div>
-
           </div>
         )}
       </section>
@@ -329,12 +431,20 @@ export default function CustomerBookingsHistory() {
           <div className="bg-surface border border-border-custom w-full max-w-md rounded-3xl p-6 md:p-8 shadow-lg flex flex-col gap-5">
             <div>
               <h3 className="text-lg font-bold text-primary-text">Cancel Reservation Query</h3>
-              <p className="text-xs text-body-text mt-1">Please provide a reason to notify the host. Cancellation policies are subject to venue guidelines.</p>
+              <p className="text-xs text-body-text mt-1">
+                Please provide a reason to notify the host. Cancellation policies are subject to
+                venue guidelines.
+              </p>
             </div>
-            
+
             <form onSubmit={handleCancelBooking} className="flex flex-col gap-4">
               <div>
-                <label className="block text-[10px] font-bold text-secondary-text uppercase mb-1" htmlFor="reason">Reason for cancellation</label>
+                <label
+                  className="block text-[10px] font-bold text-secondary-text uppercase mb-1"
+                  htmlFor="reason"
+                >
+                  Reason for cancellation
+                </label>
                 <textarea
                   id="reason"
                   required

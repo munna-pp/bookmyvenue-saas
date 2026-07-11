@@ -5,7 +5,7 @@ const baseUrl = 'http://localhost';
 function getCookieValue(headers, name) {
   const setCookie = headers.get('set-cookie');
   if (!setCookie) return null;
-  
+
   // Node-fetch might combine headers or return multiple. Split them.
   const cookies = setCookie.split(/,(?=[^;]*=)/);
   for (const cookie of cookies) {
@@ -22,7 +22,7 @@ async function runTests() {
   const timestamp = Date.now();
   const testEmail = `customer_${timestamp}@example.com`;
   const testPassword = 'password123';
-  
+
   // 1. REGISTER CUSTOMER
   console.log('1. Testing User Registration...');
   try {
@@ -33,14 +33,14 @@ async function runTests() {
         name: 'Jane Customer',
         email: testEmail,
         password: testPassword,
-        role: 'customer'
-      })
+        role: 'customer',
+      }),
     });
-    
+
     const regJson = await regRes.json();
     console.log(`Status: ${regRes.status}`);
     console.log('Response:', JSON.stringify(regJson, null, 2));
-    
+
     if (regRes.status !== 201) throw new Error(`Registration failed with status ${regRes.status}`);
     console.log('✅ Registration Succeeded.');
   } catch (err) {
@@ -60,8 +60,8 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: testEmail,
-        password: testPassword
-      })
+        password: testPassword,
+      }),
     });
 
     const loginJson = await loginRes.json();
@@ -69,13 +69,13 @@ async function runTests() {
     console.log('Response:', JSON.stringify(loginJson, null, 2));
 
     if (loginRes.status !== 200) throw new Error(`Login failed with status ${loginRes.status}`);
-    
+
     accessToken = loginJson.data.accessToken;
     refreshTokenCookie = getCookieValue(loginRes.headers, 'refreshToken');
-    
+
     console.log('JWT Access Token Received:', accessToken ? 'YES (Present)' : 'NO');
     console.log('Refresh Token Cookie Received:', refreshTokenCookie ? 'YES (Present)' : 'NO');
-    
+
     if (!accessToken || !refreshTokenCookie) {
       throw new Error('Failed to retrieve access token or refresh cookie.');
     }
@@ -92,9 +92,9 @@ async function runTests() {
   try {
     const meRes = await fetch(`${baseUrl}/api/v1/auth/me`, {
       method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${accessToken}`
-      }
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     const meJson = await meRes.json();
@@ -117,28 +117,32 @@ async function runTests() {
   try {
     const refreshRes = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
-      headers: { 
-        'Cookie': `refreshToken=${refreshTokenCookie}`,
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        Cookie: `refreshToken=${refreshTokenCookie}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     const refreshJson = await refreshRes.json();
     console.log(`Status: ${refreshRes.status}`);
     console.log('Response:', JSON.stringify(refreshJson, null, 2));
 
-    if (refreshRes.status !== 200) throw new Error(`Token refresh failed with status ${refreshRes.status}`);
+    if (refreshRes.status !== 200)
+      throw new Error(`Token refresh failed with status ${refreshRes.status}`);
 
     rotatedAccessToken = refreshJson.data.accessToken;
     rotatedRefreshTokenCookie = getCookieValue(refreshRes.headers, 'refreshToken');
 
     console.log('Rotated JWT Access Token Received:', rotatedAccessToken ? 'YES (Present)' : 'NO');
-    console.log('Rotated Refresh Token Cookie Received:', rotatedRefreshTokenCookie ? 'YES (Present)' : 'NO');
+    console.log(
+      'Rotated Refresh Token Cookie Received:',
+      rotatedRefreshTokenCookie ? 'YES (Present)' : 'NO'
+    );
 
     if (!rotatedAccessToken || !rotatedRefreshTokenCookie) {
       throw new Error('Failed to retrieve rotated tokens.');
     }
-    
+
     if (refreshTokenCookie === rotatedRefreshTokenCookie) {
       throw new Error('Refresh token rotation failed: same refresh token returned!');
     }
@@ -155,10 +159,10 @@ async function runTests() {
   try {
     const reuseRes = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
-      headers: { 
-        'Cookie': `refreshToken=${refreshTokenCookie}`,
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        Cookie: `refreshToken=${refreshTokenCookie}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     const reuseJson = await reuseRes.json();
@@ -181,10 +185,10 @@ async function runTests() {
   try {
     const logoutRes = await fetch(`${baseUrl}/api/v1/auth/logout`, {
       method: 'POST',
-      headers: { 
-        'Cookie': `refreshToken=${rotatedRefreshTokenCookie}`,
-        'Content-Type': 'application/json'
-      }
+      headers: {
+        Cookie: `refreshToken=${rotatedRefreshTokenCookie}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     const logoutJson = await logoutRes.json();
@@ -205,15 +209,15 @@ async function runTests() {
   try {
     const checkRes = await fetch(`${baseUrl}/api/v1/auth/me`, {
       method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${rotatedAccessToken}`
-      }
+      headers: {
+        Authorization: `Bearer ${rotatedAccessToken}`,
+      },
     });
 
     const checkJson = await checkRes.json();
     console.log(`Status: ${checkRes.status}`);
     console.log('Response:', JSON.stringify(checkJson, null, 2));
-    
+
     // Since JWT is stateless and we haven't implemented a blacklist, it will still allow access until it expires in 15m.
     // This is standard stateless JWT behavior and is expected.
     console.log(`✅ Stateless Access checked (Status ${checkRes.status}).`);
@@ -232,8 +236,8 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: 'admin@bookmyvenue.com',
-        password: 'adminpassword'
-      })
+        password: 'adminpassword',
+      }),
     });
 
     const adminJson = await adminRes.json();

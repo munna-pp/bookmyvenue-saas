@@ -45,7 +45,9 @@ async function runLoadTest() {
   }
 
   // 3. FIRE CONCURRENT REQUESTS
-  console.log(`\nFiring 5 concurrent booking requests for date: ${testDateStr} timeslot: 10:00-14:00...`);
+  console.log(
+    `\nFiring 5 concurrent booking requests for date: ${testDateStr} timeslot: 10:00-14:00...`
+  );
 
   const requestPayload = {
     venueId,
@@ -60,7 +62,7 @@ async function runLoadTest() {
     fetch(`${baseUrl}/api/v1/bookings`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestPayload),
@@ -69,11 +71,11 @@ async function runLoadTest() {
 
   try {
     const responses = await Promise.all(requests);
-    const statuses = responses.map(r => r.status);
+    const statuses = responses.map((r) => r.status);
     console.log('Returned Status Codes:', statuses);
 
-    const successCount = statuses.filter(s => s === 201).length;
-    const conflictCount = statuses.filter(s => s === 409).length;
+    const successCount = statuses.filter((s) => s === 201).length;
+    const conflictCount = statuses.filter((s) => s === 409).length;
 
     console.log(`\nSummary:`);
     console.log(`- Success (201 Created): ${successCount}`);
@@ -81,14 +83,20 @@ async function runLoadTest() {
 
     // Assertions
     if (successCount !== 1) {
-      throw new Error(`Load Test FAILED: Expected exactly 1 successful booking creation, but got ${successCount}!`);
+      throw new Error(
+        `Load Test FAILED: Expected exactly 1 successful booking creation, but got ${successCount}!`
+      );
     }
 
     if (conflictCount !== 4) {
-      throw new Error(`Load Test FAILED: Expected exactly 4 lock/overlap collisions, but got ${conflictCount}!`);
+      throw new Error(
+        `Load Test FAILED: Expected exactly 4 lock/overlap collisions, but got ${conflictCount}!`
+      );
     }
 
-    console.log('\n🎉 Race condition load test passed successfully! Redis locking works flawlessly.');
+    console.log(
+      '\n🎉 Race condition load test passed successfully! Redis locking works flawlessly.'
+    );
   } catch (err) {
     console.error('\n❌ Load Test failed:', err.message);
     process.exit(1);

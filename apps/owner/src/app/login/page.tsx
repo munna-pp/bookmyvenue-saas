@@ -64,7 +64,6 @@ export default function OwnerLogin() {
       setTimeout(() => {
         window.location.href = '/owner';
       }, 1500);
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong. Please check your credentials.');
     } finally {
@@ -77,7 +76,9 @@ export default function OwnerLogin() {
       <div className="w-full max-w-md bg-surface border border-border-custom rounded-3xl p-8 shadow-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight block mb-2">BMV Hosting</a>
+          <a href="/owner" className="text-2xl font-bold text-primary tracking-tight block mb-2">
+            BMV Hosting
+          </a>
           <h1 className="text-xl font-extrabold text-primary-text">Sign in to host panel</h1>
           <p className="text-sm text-body-text mt-1">Manage your venues and review requests</p>
         </div>
@@ -97,7 +98,10 @@ export default function OwnerLogin() {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="email">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="email"
+            >
               Email Address
             </label>
             <input
@@ -117,7 +121,10 @@ export default function OwnerLogin() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-secondary-text uppercase mb-1.5" htmlFor="password">
+            <label
+              className="block text-xs font-bold text-secondary-text uppercase mb-1.5"
+              htmlFor="password"
+            >
               Password
             </label>
             <div className="relative">
@@ -139,7 +146,10 @@ export default function OwnerLogin() {
               </button>
             </div>
             {errors.password && (
-              <span id="password-error" className="block text-[11px] text-red-500 mt-1 font-semibold">
+              <span
+                id="password-error"
+                className="block text-[11px] text-red-500 mt-1 font-semibold"
+              >
                 {errors.password.message}
               </span>
             )}

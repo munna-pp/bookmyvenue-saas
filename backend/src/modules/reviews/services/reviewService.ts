@@ -36,7 +36,9 @@ export const recalculateVenueRating = async (venueId: Types.ObjectId | string): 
       reviewCount = stats[0].reviewCount;
     }
 
-    logger.info(`⭐ Recalculating ratings for venue ${targetVenueId}: averageRating=${averageRating}, reviewCount=${reviewCount}`);
+    logger.info(
+      `⭐ Recalculating ratings for venue ${targetVenueId}: averageRating=${averageRating}, reviewCount=${reviewCount}`
+    );
 
     await Venue.updateOne(
       { _id: targetVenueId },

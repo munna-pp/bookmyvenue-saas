@@ -1,5 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { executeSearch, executeNearbySearch, executeSuggestionsAutocomplete, executeRecommendations, executeGetSearchAnalytics, executeGetTrending, executeGetFeatured } from './services/searchService.js';
+import {
+  executeSearch,
+  executeNearbySearch,
+  executeSuggestionsAutocomplete,
+  executeRecommendations,
+  executeGetSearchAnalytics,
+  executeGetTrending,
+  executeGetFeatured,
+} from './services/searchService.js';
 import { searchQuerySchema, nearbyQuerySchema } from './dtos.js';
 import { logger } from '../../utils/logger.js';
 

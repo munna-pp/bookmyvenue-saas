@@ -52,10 +52,10 @@ async function runPaymentTests() {
   // 2. FETCH SEEDED BOOKING IN PENDING STAGE
   try {
     const res = await fetch(`${baseUrl}/api/v1/bookings/my`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     const json = await res.json();
-    const pending = json.data.bookings.find(b => b.bookingStatus === 'PENDING');
+    const pending = json.data.bookings.find((b) => b.bookingStatus === 'PENDING');
     if (!pending) throw new Error('Seeded pending booking not found in database.');
     bookingId = pending._id || pending.id;
     console.log(`✅ Seeded Booking Found: ID: ${bookingId} | Number: ${pending.bookingNumber}`);
@@ -68,7 +68,7 @@ async function runPaymentTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/bookings/${bookingId}/approve`, {
       method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${ownerToken}` },
+      headers: { Authorization: `Bearer ${ownerToken}` },
     });
     if (res.status !== 200) throw new Error('Host approval failed');
     console.log('✅ Booking transitioned to OWNER_APPROVED by host.');
@@ -82,14 +82,16 @@ async function runPaymentTests() {
     const res = await fetch(`${baseUrl}/api/v1/coupons/apply`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ code: 'WELCOME20', bookingId }),
     });
     const json = await res.json();
     if (res.status !== 200) throw new Error(json.message || 'Coupon validation failed');
-    console.log(`✅ Coupon WELCOME20 applied. Discount: ₹${json.data.discount} | New Total: ₹${json.data.newTotal}`);
+    console.log(
+      `✅ Coupon WELCOME20 applied. Discount: ₹${json.data.discount} | New Total: ₹${json.data.newTotal}`
+    );
   } catch (err) {
     console.error('❌ Coupon application failed:', err.message);
     process.exit(1);
@@ -100,7 +102,7 @@ async function runPaymentTests() {
     const res = await fetch(`${baseUrl}/api/v1/payments/create-order`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ bookingId, couponCode: 'WELCOME20' }),
@@ -118,7 +120,7 @@ async function runPaymentTests() {
   // 6. VERIFY PAYMENT (SIMULATE RAZORPAY TEST CALLBACK)
   try {
     const providerPaymentId = `pay_mock_${Math.floor(100000 + Math.random() * 900000)}`;
-    
+
     // Generate valid HMAC signature
     const hmac = crypto.createHmac('sha256', keySecret);
     hmac.update(`${orderId}|${providerPaymentId}`);
@@ -127,7 +129,7 @@ async function runPaymentTests() {
     const res = await fetch(`${baseUrl}/api/v1/payments/verify`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${customerToken}`,
+        Authorization: `Bearer ${customerToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -150,12 +152,12 @@ async function runPaymentTests() {
   // 7. CHECK WALLET CREDIT & LEDGER HISTORY
   try {
     const res = await fetch(`${baseUrl}/api/v1/payments/wallet`, {
-      headers: { 'Authorization': `Bearer ${ownerToken}` },
+      headers: { Authorization: `Bearer ${ownerToken}` },
     });
     const json = await res.json();
     console.log(`✅ Host Wallet Balance synced: ₹${json.data.balance}`);
     console.log(`Wallet ledger count: ${json.data.ledger.length} entries.`);
-    const credit = json.data.ledger.find(tx => tx.type === 'CREDIT');
+    const credit = json.data.ledger.find((tx) => tx.type === 'CREDIT');
     if (!credit) throw new Error('Credit payout ledger entry not found.');
     console.log(`Payout transaction: ${credit.description} | Amount: ₹${credit.amount}`);
   } catch (err) {
@@ -166,13 +168,13 @@ async function runPaymentTests() {
   // 8. DOWNLOAD PDF INVOICE
   try {
     const res = await fetch(`${baseUrl}/api/v1/invoices/download/${invoiceId}`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     if (res.status !== 200) throw new Error('PDF download endpoint returned error');
-    
+
     const buffer = await res.arrayBuffer();
     console.log(`✅ Downloaded Invoice PDF file. Length: ${buffer.byteLength} bytes.`);
-    
+
     // Check if buffer contains PDF magic header
     const pdfHeader = Buffer.from(buffer).slice(0, 4).toString();
     console.log(`PDF Magic Header matches: ${pdfHeader === '%PDF' ? 'YES' : 'NO'}`);
@@ -186,7 +188,7 @@ async function runPaymentTests() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/payments/${paymentId}/refund`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
     const json = await res.json();
     if (res.status !== 200) throw new Error(json.message || 'Refund failed');
@@ -199,11 +201,11 @@ async function runPaymentTests() {
   // 10. RE-AUDIT WALLET LEDGER POST REFUND
   try {
     const res = await fetch(`${baseUrl}/api/v1/payments/wallet`, {
-      headers: { 'Authorization': `Bearer ${ownerToken}` },
+      headers: { Authorization: `Bearer ${ownerToken}` },
     });
     const json = await res.json();
     console.log(`✅ Post-refund Host Wallet Balance: ₹${json.data.balance}`);
-    const refundTx = json.data.ledger.find(tx => tx.type === 'REFUND');
+    const refundTx = json.data.ledger.find((tx) => tx.type === 'REFUND');
     if (!refundTx) throw new Error('Refund debit ledger entry not found.');
     console.log(`Refund transaction: ${refundTx.description} | Amount: ₹${refundTx.amount}`);
   } catch (err) {

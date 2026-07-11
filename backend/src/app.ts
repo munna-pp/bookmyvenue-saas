@@ -8,8 +8,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
 import { metricsMiddleware, metricsEndpoint } from './middleware/metrics.js';
 
-
-
 // Import modules
 import authRouter from './modules/auth/routes.js';
 import usersRouter from './modules/users/routes.js';
@@ -27,12 +25,14 @@ app.use(metricsMiddleware);
 
 // Security Middlewares
 app.use(helmet());
-app.use(cors({
-  origin: '*', // We'll configure this properly per env later
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: '*', // We'll configure this properly per env later
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
 
 // Rate Limiting
 app.use('/api/', apiRateLimiter);

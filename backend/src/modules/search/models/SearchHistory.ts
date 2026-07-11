@@ -4,7 +4,7 @@ import { getModuleConnection } from '../../../config/db.js';
 export interface ISearchHistory extends Document {
   customerId?: Types.ObjectId;
   keyword?: string;
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
   resultsCount: number;
   searchedAt: Date;
 }

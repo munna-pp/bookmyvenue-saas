@@ -42,8 +42,10 @@ export class CloudinaryUploadService implements IUploadService {
     const index = Math.abs(base64Data.length) % mockImages.length;
     const mockUrl = mockImages[index];
 
-    logger.info(`[UploadService] Uploading base64 image data to folder: ${folderName}. Returning URL: ${mockUrl}`);
-    
+    logger.info(
+      `[UploadService] Uploading base64 image data to folder: ${folderName}. Returning URL: ${mockUrl}`
+    );
+
     // Simulate short asynchronous upload delay
     await new Promise((resolve) => setTimeout(resolve, 80));
     return mockUrl;

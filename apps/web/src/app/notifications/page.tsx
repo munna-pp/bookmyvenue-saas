@@ -14,14 +14,16 @@ export default function NotificationsPage() {
 
   const getAuthHeaders = (): Record<string, string> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
   const fetchNotifications = async () => {
     setLoading(true);
     try {
       const readParam = filter === 'unread' ? 'false' : '';
-      const url = getApiUrl(`/api/v1/notifications?page=${page}&limit=10${readParam ? `&read=${readParam}` : ''}`);
+      const url = getApiUrl(
+        `/api/v1/notifications?page=${page}&limit=10${readParam ? `&read=${readParam}` : ''}`
+      );
       const res = await fetch(url, {
         headers: getAuthHeaders(),
       });
@@ -111,10 +113,22 @@ export default function NotificationsPage() {
     <main className="min-h-screen bg-background text-primary-text flex flex-col justify-between">
       {/* Top Navbar */}
       <header className="border-b border-border-custom bg-surface py-4 px-6 md:px-12 flex justify-between items-center shadow-xs">
-        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">BookMyVenue</a>
+        <a href="/venues" className="text-2xl font-black text-primary tracking-tight">
+          BookMyVenue
+        </a>
         <nav className="flex items-center gap-6">
-          <a href="/venues" className="text-secondary-text hover:text-primary transition font-semibold text-xs">Browse Venues</a>
-          <a href="/bookings" className="text-secondary-text hover:text-primary transition font-semibold text-xs">My Bookings</a>
+          <a
+            href="/venues"
+            className="text-secondary-text hover:text-primary transition font-semibold text-xs"
+          >
+            Browse Venues
+          </a>
+          <a
+            href="/bookings"
+            className="text-secondary-text hover:text-primary transition font-semibold text-xs"
+          >
+            My Bookings
+          </a>
         </nav>
       </header>
 
@@ -125,7 +139,9 @@ export default function NotificationsPage() {
             <h1 className="text-3xl font-extrabold text-primary-text tracking-tight flex items-center gap-2">
               <Bell size={28} className="text-primary" /> Notification Center
             </h1>
-            <p className="text-sm text-body-text">Manage your real-time alerts, booking approvals, and invoice receipts.</p>
+            <p className="text-sm text-body-text">
+              Manage your real-time alerts, booking approvals, and invoice receipts.
+            </p>
           </div>
 
           <div className="flex gap-2">
@@ -161,13 +177,18 @@ export default function NotificationsPage() {
         {loading ? (
           <div className="p-20 flex flex-col justify-center items-center gap-4 text-center">
             <Loader2 size={36} className="animate-spin text-primary" />
-            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">Syncing Inbox...</span>
+            <span className="text-xs font-bold text-secondary-text uppercase tracking-wide">
+              Syncing Inbox...
+            </span>
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-20 text-center flex flex-col items-center gap-4 bg-surface border border-border-custom rounded-3xl">
             <Inbox size={48} className="text-muted-text" />
             <h2 className="text-base font-bold text-primary-text">Inbox Empty</h2>
-            <p className="text-xs text-body-text max-w-sm">No notifications found. Active reservation alerts and payout warnings will show up here.</p>
+            <p className="text-xs text-body-text max-w-sm">
+              No notifications found. Active reservation alerts and payout warnings will show up
+              here.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -183,7 +204,9 @@ export default function NotificationsPage() {
                   >
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getStatusBadge(notif.type)}`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getStatusBadge(notif.type)}`}
+                        >
                           {notif.type.replace('_', ' ')}
                         </span>
                         {!notif.read && (
@@ -192,7 +215,10 @@ export default function NotificationsPage() {
                           </span>
                         )}
                         <span className="text-[10px] text-muted-text font-medium">
-                          {new Date(notif.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                          {new Date(notif.createdAt).toLocaleString('en-US', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
                         </span>
                       </div>
                       <h3 className="font-extrabold text-sm text-primary-text">{notif.title}</h3>

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Types } from 'mongoose';
+import { Types, SortOrder } from 'mongoose';
 import { Review } from './models/Review.js';
 import { Wishlist } from './models/Wishlist.js';
 import { Booking } from '../bookings/models/Booking.js';
@@ -203,7 +203,7 @@ export const getVenueReviews = async (
     const { id } = req.params;
     const { rating, sortBy = 'newest', page = 1, limit = 10 } = req.query;
 
-    const query: any = {
+    const query: Record<string, unknown> = {
       venueId: new Types.ObjectId(id),
       isDeleted: false,
       hidden: false,
@@ -218,7 +218,7 @@ export const getVenueReviews = async (
     const skip = (pageNum - 1) * limitNum;
 
     // Sorting options mapping
-    let sortOptions: any = { createdAt: -1 };
+    let sortOptions: { [key: string]: SortOrder } = { createdAt: -1 };
     if (sortBy === 'oldest') {
       sortOptions = { createdAt: 1 };
     } else if (sortBy === 'highest_rating') {
@@ -227,7 +227,9 @@ export const getVenueReviews = async (
       sortOptions = { rating: 1, createdAt: -1 };
     }
 
-    logger.info(`📋 Fetching reviews for venue: ${id} (page: ${pageNum}, limit: ${limitNum}, sortBy: ${sortBy})`);
+    logger.info(
+      `📋 Fetching reviews for venue: ${id} (page: ${pageNum}, limit: ${limitNum}, sortBy: ${sortBy})`
+    );
 
     const [reviews, total] = await Promise.all([
       Review.find(query)
@@ -372,7 +374,9 @@ export const getWishlist = async (
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
 
-    logger.info(`📋 Fetching wishlist items for customer: ${customerId} (page: ${pageNum}, limit: ${limitNum}, sortBy: ${sortBy})`);
+    logger.info(
+      `📋 Fetching wishlist items for customer: ${customerId} (page: ${pageNum}, limit: ${limitNum}, sortBy: ${sortBy})`
+    );
 
     // Fetch wishlist entries (sorted newest first by default to align savedDate mapping)
     const wishlistItems = await Wishlist.find({ customerId }).sort({ createdAt: -1 });
@@ -392,7 +396,7 @@ export const getWishlist = async (
     }
 
     // Determine sorting options for populated venues
-    let sortOptions: any = {};
+    let sortOptions: { [key: string]: SortOrder } = {};
     if (sortBy === 'newest') {
       sortOptions = { createdAt: -1 };
     } else if (sortBy === 'oldest') {
@@ -514,11 +518,7 @@ export const hideReview = async (
     const { id } = req.params;
     logger.info(`🛡️ Admin hiding review ${id}`);
 
-    const review = await Review.findByIdAndUpdate(
-      id,
-      { hidden: true },
-      { new: true }
-    );
+    const review = await Review.findByIdAndUpdate(id, { hidden: true }, { new: true });
 
     if (!review) {
       next(new AppError('Review not found', 404));
@@ -552,11 +552,7 @@ export const restoreReview = async (
     const { id } = req.params;
     logger.info(`🛡️ Admin restoring review ${id}`);
 
-    const review = await Review.findByIdAndUpdate(
-      id,
-      { hidden: false },
-      { new: true }
-    );
+    const review = await Review.findByIdAndUpdate(id, { hidden: false }, { new: true });
 
     if (!review) {
       next(new AppError('Review not found', 404));
@@ -624,7 +620,7 @@ export const getAllReviewsAdmin = async (
   try {
     const { rating, search, page = 1, limit = 10 } = req.query;
 
-    const query: any = {
+    const query: Record<string, unknown> = {
       isDeleted: false,
     };
 
@@ -643,7 +639,9 @@ export const getAllReviewsAdmin = async (
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
 
-    logger.info(`🛡️ Admin fetching all reviews (page: ${pageNum}, limit: ${limitNum}, rating: ${rating})`);
+    logger.info(
+      `🛡️ Admin fetching all reviews (page: ${pageNum}, limit: ${limitNum}, rating: ${rating})`
+    );
 
     const [reviews, total] = await Promise.all([
       Review.find(query)
@@ -709,7 +707,9 @@ export const getOwnerReviews = async (
     const limitNum = Math.max(1, parseInt(limit as string, 10));
     const skip = (pageNum - 1) * limitNum;
 
-    logger.info(`📋 Owner ${ownerId} fetching reviews for their venues (page: ${pageNum}, limit: ${limitNum})`);
+    logger.info(
+      `📋 Owner ${ownerId} fetching reviews for their venues (page: ${pageNum}, limit: ${limitNum})`
+    );
 
     const [reviews, total] = await Promise.all([
       Review.find({

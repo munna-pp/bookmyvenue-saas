@@ -55,11 +55,14 @@ export default function AdminReviewsDashboard() {
       // GET /api/v1/reviews
       // We will add it next. Let's make sure the frontend calls:
       // GET /api/v1/reviews?page=${page}&rating=${ratingFilter}&search=${search}
-      const res = await fetch(`/api/v1/reviews?page=${page}&rating=${ratingFilter}&search=${search}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `/api/v1/reviews?page=${page}&rating=${ratingFilter}&search=${search}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setReviews(data.data.reviews || []);
@@ -95,7 +98,7 @@ export default function AdminReviewsDashboard() {
         },
       });
       if (res.ok) {
-        setReviews(prev => prev.map(r => r._id === id ? { ...r, hidden: true } : r));
+        setReviews((prev) => prev.map((r) => (r._id === id ? { ...r, hidden: true } : r)));
       } else {
         alert('Failed to hide review.');
       }
@@ -114,7 +117,7 @@ export default function AdminReviewsDashboard() {
         },
       });
       if (res.ok) {
-        setReviews(prev => prev.map(r => r._id === id ? { ...r, hidden: false } : r));
+        setReviews((prev) => prev.map((r) => (r._id === id ? { ...r, hidden: false } : r)));
       } else {
         alert('Failed to restore review.');
       }
@@ -125,7 +128,8 @@ export default function AdminReviewsDashboard() {
 
   const handleDelete = async (id: string) => {
     if (!token) return;
-    if (!confirm('Are you sure you want to permanently delete this review from the system?')) return;
+    if (!confirm('Are you sure you want to permanently delete this review from the system?'))
+      return;
     try {
       const res = await fetch(`/api/v1/admin/reviews/${id}`, {
         method: 'DELETE',
@@ -134,7 +138,7 @@ export default function AdminReviewsDashboard() {
         },
       });
       if (res.ok) {
-        setReviews(prev => prev.filter(r => r._id !== id));
+        setReviews((prev) => prev.filter((r) => r._id !== id));
       } else {
         alert('Failed to purge review.');
       }
@@ -154,7 +158,10 @@ export default function AdminReviewsDashboard() {
           </span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="/admin" className="text-secondary-text hover:text-primary transition font-medium text-sm">
+          <a
+            href="/admin"
+            className="text-secondary-text hover:text-primary transition font-medium text-sm"
+          >
             Back to Dashboard
           </a>
           <NotificationBell />
@@ -165,8 +172,12 @@ export default function AdminReviewsDashboard() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">Review Moderation Panel</h1>
-            <p className="text-sm text-secondary-text mt-1">Hide, restore, or purge venue feedback ratings</p>
+            <h1 className="text-3xl font-extrabold text-primary-text tracking-tight">
+              Review Moderation Panel
+            </h1>
+            <p className="text-sm text-secondary-text mt-1">
+              Hide, restore, or purge venue feedback ratings
+            </p>
           </div>
 
           {/* Search/Filters */}
@@ -207,7 +218,9 @@ export default function AdminReviewsDashboard() {
           <div className="text-center py-24 border border-dashed border-border-custom rounded-3xl bg-surface/50">
             <span className="text-5xl">📋</span>
             <h3 className="text-lg font-bold mt-4">No Reviews Found</h3>
-            <p className="text-sm text-secondary-text mt-1">Try resetting your filters or search terms.</p>
+            <p className="text-sm text-secondary-text mt-1">
+              Try resetting your filters or search terms.
+            </p>
           </div>
         ) : (
           <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
@@ -278,7 +291,9 @@ export default function AdminReviewsDashboard() {
 
             {/* Pagination footer */}
             <div className="border-t border-border-custom py-4 px-6 flex justify-between items-center bg-muted/20">
-              <span className="text-xs text-secondary-text font-medium">Page {page} of {pages}</span>
+              <span className="text-xs text-secondary-text font-medium">
+                Page {page} of {pages}
+              </span>
               <div className="flex gap-2">
                 <button
                   disabled={page <= 1}
